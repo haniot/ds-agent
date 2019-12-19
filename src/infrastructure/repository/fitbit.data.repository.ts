@@ -507,7 +507,7 @@ export class FitbitDataRepository implements IFitbitDataRepository {
                     data.access_token!,
                     100,
                     moment().format('YYYY-MM-DD')))
-            } catch (err) {0
+            } catch (err) {
                 return reject(err)
             }
         })
