@@ -13,7 +13,7 @@ export class Measurement extends Entity implements IJSONSerializable, IJSONDeser
     private _timestamp?: string // Timestamp according to the UTC.
     private _value?: number // Value of measurement.
     private _unit?: string // Unit of measurement.
-    private _child_id?: string // Id of child associated with the measurement.
+    private _patient_id?: string // Id of child associated with the measurement.
 
     constructor() {
         super()
@@ -51,12 +51,12 @@ export class Measurement extends Entity implements IJSONSerializable, IJSONDeser
         this._unit = value
     }
 
-    get child_id(): string | undefined {
-        return this._child_id
+    get patient_id(): string | undefined {
+        return this._patient_id
     }
 
-    set child_id(value: string | undefined) {
-        this._child_id = value
+    set patient_id(value: string | undefined) {
+        this._patient_id = value
     }
 
     public fromJSON(json: any): Measurement {
@@ -70,7 +70,7 @@ export class Measurement extends Entity implements IJSONSerializable, IJSONDeser
         if (json.timestamp !== undefined) this.timestamp = json.timestamp
         if (json.value !== undefined) this.value = json.value
         if (json.unit !== undefined) this.unit = json.unit
-        if (json.child_id !== undefined) this.child_id = json.child_id
+        if (json.patient_id !== undefined) this.patient_id = json.patient_id
 
         return this
     }
@@ -78,11 +78,10 @@ export class Measurement extends Entity implements IJSONSerializable, IJSONDeser
     public toJSON(): any {
         return {
             id: super.id,
-            type: this.type,
             timestamp: this.timestamp,
             value: this.value,
             unit: this.unit,
-            child_id: this.child_id
+            patient_id: this.patient_id
         }
     }
 }

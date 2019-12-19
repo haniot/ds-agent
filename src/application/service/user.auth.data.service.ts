@@ -14,6 +14,9 @@ import { ILogger } from '../../utils/custom.logger'
 import { DataSync } from '../domain/model/data.sync'
 import { VerifyFitbitAuthValidator } from '../domain/validator/verify.fitbit.auth.validator'
 import { IEventBus } from '../../infrastructure/port/event.bus.interface'
+import { FitbitErrorEvent } from '../integration-event/event/fitbit.error.event'
+import { FitbitRevokeEvent } from '../integration-event/event/fitbit.revoke.event'
+import { FitbitLastSyncEvent } from '../integration-event/event/fitbit.last.sync.event'
 
 @injectable()
 export class UserAuthDataService implements IUserAuthDataService {
@@ -44,14 +47,15 @@ export class UserAuthDataService implements IUserAuthDataService {
                     result = await this._userAuthDataRepo.create(authData)
                 }
 
-                // if (authData.fitbit && authData.fitbit.last_sync) {
-                //     this._eventBus.bus.pubFitbitLastSync({
-                //         child_id: authData.user_id,
-                //         last_sync: authData.fitbit.last_sync
-                //     })
-                //         .then(() => this._logger.info(`Last sync from ${authData.user_id} successful published!`))
-                //         .catch(err => this._logger.error(`Error at publish last sync: ${err.message}`))
-                // }
+                if (authData.fitbit && authData.fitbit.last_sync) {
+                    this._eventBus
+                        .publish(new FitbitLastSyncEvent(new Date(), {
+                            child_id: authData.user_id,
+                            last_sync: authData.fitbit.last_sync
+                        }), 'fitbit.lastsync')
+                        .then(() => this._logger.info(`Last sync from ${authData.user_id} successful published!`))
+                        .catch(err => this._logger.error(`Error at publish last sync: ${err.message}`))
+                }
                 return resolve(result)
             } catch (err) {
                 return reject(err)
@@ -101,14 +105,16 @@ export class UserAuthDataService implements IUserAuthDataService {
 
                 // 3. Revokes Fitbit access token.
                 // 4. Remove Fitbit authorization data from local database.
-                if (await this._fitbitAuthDataRepo.revokeToken(authData.fitbit.access_token) &&
-                    await this._fitbitAuthDataRepo.removeFitbitAuthData(userId)) {
+
+                const isRevoked: boolean = await this._fitbitAuthDataRepo.revokeToken(authData.fitbit.access_token)
+                const isDeleted: boolean = await this._fitbitAuthDataRepo.removeFitbitAuthData(userId)
+                if (isRevoked && isDeleted) {
                     // 5. Publish the Fitbit revoke event on the bus.
-                    // this._eventBus.bus
-                    //     .pubFitbitRevoke({ child_id: userId })
-                    //     .then(() => this._logger.info(`Fitbit revoke event for child ${userId} successfully published!`))
-                    //     .catch((err) => this._logger.error(`There was an error publishing Fitbit
-                    //     revoke event for child ${userId}. ${err.message}`))
+                    this._eventBus
+                        .publish(new FitbitRevokeEvent(new Date(), userId), 'fitbit.revoke')
+                        .then(() => this._logger.info(`Fitbit revoke event for patient ${userId} successfully published!`))
+                        .catch((err) => this._logger.error('There was an error publishing Fitbit' +
+                            `revoke event for patient ${userId}. ${err.message}`))
                     return resolve(true)
                 } else {
                     return resolve(false)
@@ -135,7 +141,7 @@ export class UserAuthDataService implements IUserAuthDataService {
                 this._userAuthDataRepo
                     .getUserAuthDataByUserId(userId)
                     .then(async data => {
-                        if (!data || !data.fitbit) {
+                        if (!data || !data.fitbit || !data.fitbit!.access_token) {
                             throw new ValidationException(
                                 'User does not have authentication data. Please, submit authentication data and try again.'
                             )
@@ -185,7 +191,7 @@ export class UserAuthDataService implements IUserAuthDataService {
             const authData: UserAuthData =
                 await this._userAuthDataRepo
                     .findOne(new Query().fromJSON({ filters: { 'fitbit.user_id': fitbitUserId } }))
-            if (!authData) return await Promise.resolve()
+            if (!authData || !authData.fitbit || !authData.fitbit!.access_token) return await Promise.resolve()
             this.syncLastFitbitData(authData.fitbit!, authData.user_id!, type, date)
                 .then()
                 .catch(err => this._logger.error(`The resource ${type} from ${authData.user_id} could note be sync: ` +
@@ -318,7 +324,7 @@ export class UserAuthDataService implements IUserAuthDataService {
    */
     private publishFitbitAuthError(error: any, userId: string): void {
         const fitbit: any = {
-            child_id: userId,
+            patient_id: userId,
             error: { code: 0, message: error.message, description: error.description }
         }
 
@@ -344,8 +350,9 @@ export class UserAuthDataService implements IUserAuthDataService {
         }
 
         this._logger.error(`Fitbit error: ${JSON.stringify(fitbit)}`)
-        // this._eventBus.bus.pubFitbitAuthError(fitbit)
-        //     .then(() => this._logger.info(`Error message about ${error.type} from ${userId} successful published!`))
-        //     .catch(err => this._logger.error(`Error at publish error message from ${userId}: ${err.message}`))
+        this._eventBus
+            .publish(new FitbitErrorEvent(new Date(), fitbit), 'fitbit.error')
+            .then(() => this._logger.info(`Error message about ${error.type} from ${userId} successful published!`))
+            .catch(err => this._logger.error(`Error at publish error message from ${userId}: ${err.message}`))
     }
 }

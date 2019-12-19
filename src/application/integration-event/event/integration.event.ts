@@ -15,5 +15,9 @@ export abstract class IntegrationEvent<T> implements IJSONSerializable {
 }
 
 export enum EventType {
-    USER = 'users'
+    USER = 'users',
+    ACTIVITY = 'activities',
+    MEASUREMENT = 'measurements',
+    TIME_SERIES = 'timeseries',
+    FITBIT = 'fitbit'
 }
