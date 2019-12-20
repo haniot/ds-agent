@@ -32,6 +32,9 @@ import { WeightSyncEvent } from '../../application/integration-event/event/weigh
 import { SleepSyncEvent } from '../../application/integration-event/event/sleep.sync.event'
 import { PhysicalActivitySyncEvent } from '../../application/integration-event/event/physical.activity.sync.event'
 import { FitbitLastSyncEvent } from '../../application/integration-event/event/fitbit.last.sync.event'
+import { UserTimeSeries } from '../../application/domain/model/user.time.series'
+import { UserIntradayTimeSeries } from '../../application/domain/model/user.intraday.time.series'
+import { TimeSeriesSyncEvent } from '../../application/integration-event/event/time.series.sync.event'
 
 @injectable()
 export class FitbitDataRepository implements IFitbitDataRepository {
@@ -128,32 +131,70 @@ export class FitbitDataRepository implements IFitbitDataRepository {
                 let syncWeights: Array<any> = []
                 let syncSleep: Array<any> = []
                 let syncActivities: Array<any>
-                // let stepsLogs: Array<any>
-                // let caloriesLogs: Array<any>
-                // let minutesSedentaryLogs: Array<any>
-                // let minutesLightlyActiveLogs: Array<any>
-                // let minutesFairlyActiveLogs: Array<any>
-                // let minutesVeryActiveLogs: Array<any>
+                let stepsTimeSeries: any
+                let caloriesTimeSeries: any
+                let minutesFairlyActiveTimeSeries: any
+                let minutesVeryActiveTimeSeries: any
+                let heartRateTimeSeries: any
+                let stepsIntradayTimeSeries: any
+                let caloriesIntradayTimeSeries: any
+                let minutesFairlyActiveIntradayTimeSeries: any
+                let minutesVeryActiveIntradayTimeSeries: any
+                let heartRateIntradayTimeSeries: any
 
                 if (scopes.includes('rwei')) syncWeights = await this.syncWeightData(data)
                 if (scopes.includes('rsle')) syncSleep = await this.syncSleepData(data)
                 if (scopes.includes('ract')) {
+                    const before_date: string = moment().format('YYYY-MM-DD')
+                    const after_date: string = data.last_sync ? data.last_sync :
+                        moment(before_date).subtract(1, 'year').format('YYYY-MM-DD')
+                    // Get Activities
                     promises.push(this.syncUserActivities(data))
-                    // promises.push(this.syncUserActivitiesLogs(data, data.last_sync!, 'steps'))
-                    // promises.push(this.syncUserActivitiesLogs(data, data.last_sync!, 'calories'))
-                    // promises.push(this.syncUserActivitiesLogs(data, data.last_sync!, 'minutesSedentary'))
-                    // promises.push(this.syncUserActivitiesLogs(data, data.last_sync!, 'minutesLightlyActive'))
-                    // promises.push(this.syncUserActivitiesLogs(data, data.last_sync!, 'minutesFairlyActive'))
-                    // promises.push(this.syncUserActivitiesLogs(data, data.last_sync!, 'minutesVeryActive'))
+
+                    // Get Time Series
+                    promises.push(this.getTimeSeries(data.access_token!, 'steps', before_date, after_date))
+                    promises.push(this.getTimeSeries(data.access_token!, 'calories', before_date, after_date))
+                    promises.push(this.getTimeSeries(data.access_token!, 'minutesFairlyActive', before_date, after_date))
+                    promises.push(this.getTimeSeries(data.access_token!, 'minutesVeryActive', before_date, after_date))
+                    promises.push(this.getHeartRateTimeSeries(data.access_token!, before_date, after_date))
+
+                    // Get Intraday Time Series
+                    promises.push(this.getTimeSeries(data.access_token!, 'steps', before_date, before_date))
+                    promises.push(this.getTimeSeries(data.access_token!, 'calories', before_date, before_date))
+                    promises.push(this.getTimeSeries(data.access_token!, 'minutesFairlyActive', before_date, before_date))
+                    promises.push(this.getTimeSeries(data.access_token!, 'minutesVeryActive', before_date, before_date))
+                    heartRateIntradayTimeSeries = await this.getHeartRateIntradayTimeSeries(data.access_token!, before_date, '1sec')
                 }
                 const result = await Promise.all(promises)
                 syncActivities = result[0] || []
-                // stepsLogs = result[1] || []
-                // caloriesLogs = result[2] || []
-                // minutesSedentaryLogs = result[3] || []
-                // minutesLightlyActiveLogs = result[4] || []
-                // minutesFairlyActiveLogs = result[5] || []
-                // minutesVeryActiveLogs = result[6] || []
+                stepsTimeSeries = result[1] || undefined
+                caloriesTimeSeries = result[2] || undefined
+                minutesFairlyActiveTimeSeries = result[3] || undefined
+                minutesVeryActiveTimeSeries = result[4] || undefined
+                heartRateTimeSeries = result[5] || undefined
+                stepsIntradayTimeSeries = result[6] || undefined
+                caloriesIntradayTimeSeries = result[7] || undefined
+                minutesFairlyActiveIntradayTimeSeries = result[8] || undefined
+                minutesVeryActiveIntradayTimeSeries = result[9] || undefined
+
+                minutesFairlyActiveTimeSeries
+                minutesVeryActiveTimeSeries
+                heartRateTimeSeries
+                minutesVeryActiveTimeSeries
+                stepsIntradayTimeSeries
+                caloriesIntradayTimeSeries
+                stepsIntradayTimeSeries
+                caloriesIntradayTimeSeries
+                minutesFairlyActiveIntradayTimeSeries
+                minutesVeryActiveIntradayTimeSeries
+                heartRateIntradayTimeSeries
+
+                // const minutesActiveTimeSerie: any =
+                //     this.mergeTimeSeriesValues(minutesFairlyActiveTimeSeries, minutesVeryActiveTimeSeries)
+                // const minutesActiveIntradayTimeSeries: any =
+                //     this.mergeIntradayTimeSeriesValues(
+                //         minutesFairlyActiveIntradayTimeSeries,
+                //         minutesVeryActiveIntradayTimeSeries)
 
                 // Filter list of data for does not sync data that was saved
                 const weights: Array<any> = await this.filterDataAlreadySync(syncWeights, ResourceDataType.BODY, userId)
@@ -164,15 +205,23 @@ export class FitbitDataRepository implements IFitbitDataRepository {
                 const weightList: Array<Weight> = await this.parseWeightList(weights, userId)
                 const activitiesList: Array<PhysicalActivity> = await this.parsePhysicalActivityList(activities, userId)
                 const sleepList: Array<Sleep> = await this.parseSleepList(sleep, userId)
-                const userLog: UserLog = await this.parseActivityLogs(
-                    [],
-                    [],
-                    [],
-                    // stepsLogs,
-                    // caloriesLogs,
-                    // this.mergeLogsValues(minutesFairlyActiveLogs, minutesVeryActiveLogs),
-                    userId
-                )
+
+                const stepsSeries: UserTimeSeries =
+                    this.parseTimeSeriesResources(userId, 'steps', stepsTimeSeries['activities-steps'])
+                const caloriesSeries: UserTimeSeries =
+                    this.parseTimeSeriesResources(userId, 'calories', caloriesTimeSeries['activities-calories'])
+                // const minutesActiveSeries: UserTimeSeries =
+                //     this.parseTimeSeriesResources(userId,
+                //     'active-minutes', minutesActiveTimeSerie['activities-minutes-active'])
+                // const heartRateSeries: UserTimeSeries = this.parseTimeSeriesHeartRate(userId, heartRateTimeSeries)
+                /* const stepsIntradaySeries: UserIntradayTimeSeries =
+                     this.parseIntradayTimeSeriesResources(userId, 'steps', stepsIntradayTimeSeries)
+                 const caloriesIntradaySeries: UserIntradayTimeSeries =
+                     this.parseIntradayTimeSeriesResources(userId, 'calories', caloriesIntradayTimeSeries)
+                 const minutesActiveIntradaySeries: UserIntradayTimeSeries =
+                     this.parseIntradayTimeSeriesResources(userId, 'active-minutes', minutesActiveIntradayTimeSeries)
+                 const heartRateIntradaySeries: UserIntradayTimeSeries =
+                     this.parseIntradayTimeSeriesHeartRate(userId, heartRateIntradayTimeSeries)*/
 
                 // The sync data must be published to the message bus.
                 if (activitiesList.length) {
@@ -209,16 +258,25 @@ export class FitbitDataRepository implements IFitbitDataRepository {
                         })
                         .catch(err => this._logger.error(`Error publishing sleep: ${err.message}`))
                 }
+                if (stepsSeries !== undefined) {
+                    this._eventBus
+                        .publish(new TimeSeriesSyncEvent(new Date(), userId, stepsSeries), 'timeseries.sync')
+                        .then(() => this._logger.info(`Step time series from ${userId} successful published!`))
+                        .catch(err => this._logger.error(`Error publishing step time series: ${err.message}`))
+                }
+                if (caloriesSeries !== undefined) {
+                    this._eventBus
+                        .publish(new TimeSeriesSyncEvent(new Date(), userId, caloriesSeries), 'timeseries.sync')
+                        .then(() => this._logger.info(`Calories time series from ${userId} successful published!`))
+                        .catch(err => this._logger.error(`Error publishing calories time series: ${err.message}`))
+                }
 
-                // const logList: Array<any> = userLog.toJSONList()
-                // if (logList && logList.length) {
-                //     this._eventBus.bus
-                //         .pubSyncLog(logList)
-                //         .then(() => {
-                //             this._logger.info(`Activities logs from ${userId} successful published!`)
-                //         })
-                //         .catch(err => this._logger.error(`Error publishing logs: ${err.message}`))
-                // }
+                // minutesActiveSeries
+                // heartRateSeries
+                //  stepsIntradaySeries
+                //  caloriesIntradaySeries
+                //  minutesActiveIntradaySeries
+                //  heartRateIntradaySeries
 
                 // Finally, the last sync variable from user needs to be updated
                 const lastSync = moment.utc().format()
@@ -235,9 +293,9 @@ export class FitbitDataRepository implements IFitbitDataRepository {
                 dataSync.weights = weightList.length || 0
                 dataSync.sleep = sleepList.length || 0
                 dataSync.logs = new LogSync().fromJSON({
-                    steps: userLog.steps.length || 0,
-                    calories: userLog.calories.length || 0,
-                    active_minutes: userLog.active_minutes.length || 0
+                    steps: 0,
+                    calories: 0,
+                    active_minutes: 0
                 })
                 return resolve(dataSync)
             } catch (err) {
@@ -604,7 +662,150 @@ export class FitbitDataRepository implements IFitbitDataRepository {
         }
     }
 
+    public getTimeSeries(token: string, resource: string, baseDate: string, endDate: string): Promise<any> {
+        const path: string = `/activities/${resource}/date/${baseDate}/${endDate}.json`
+        return new Promise<any>((resolve, reject) => {
+            this._fitbitClientRepo.getDataFromPath(path, token)
+                .then(result => resolve(result))
+                .catch(err => reject(this.fitbitClientErrorListener(err, token)))
+        })
+    }
+
+    public getHeartRateIntradayTimeSeries(token: string, date: string, detailLevel: string): Promise<any> {
+        const path: string = `/activities/heart/date/${date}/1d/${detailLevel}.json`
+        return new Promise<any>((resolve, reject) => {
+            this._fitbitClientRepo.getDataFromPath(path, token)
+                .then(result => resolve(result))
+                .catch(err => reject(this.fitbitClientErrorListener(err, token)))
+        })
+    }
+
+    public getHeartRateTimeSeries(token: string, baseDate: string, endDate: string): Promise<any> {
+        const path: string = `/activities/heart/date/${baseDate}/${endDate}.json`
+        return new Promise<any>((resolve, reject) => {
+            this._fitbitClientRepo.getDataFromPath(path, token)
+                .then(result => resolve(result))
+                .catch(err => reject(this.fitbitClientErrorListener(err, token)))
+        })
+    }
+
     // Parsers
+    public parseIntradayTimeSeriesResources(userId: string, resource: string, dataset: Array<any>): UserIntradayTimeSeries {
+        const intraday_data: any = dataset[`activities-${resource}-intraday`]
+        const dataset_intraday: Array<any> = intraday_data.dataset
+
+        return new UserIntradayTimeSeries().fromJSON({
+            patient_id: userId,
+            start_time: dataset_intraday.length ? dataset_intraday[0].time : undefined,
+            end_time: dataset_intraday.length ? dataset_intraday[dataset_intraday.length - 1].time : undefined,
+            interval: `${intraday_data.datasetInterval}${intraday_data.datasetType.substr(0, 3)}`,
+            type: resource,
+            data_set: dataset_intraday
+        })
+    }
+
+    public parseIntradayTimeSeriesHeartRate(userId: string, data: any): UserIntradayTimeSeries {
+        const heart_rate_zone: Array<any> = data['activities-heart'][0].value.heartRateZones
+        const intraday_data: any = data['activities-heart-intraday']
+        const dataset_intraday: Array<any> = intraday_data.dataset
+
+        const fat_burn = heart_rate_zone.filter(value => value.name === 'Fat Burn')[0]
+        const cardio = heart_rate_zone.filter(value => value.name === 'Cardio')[0]
+        const peak = heart_rate_zone.filter(value => value.name === 'Peak')[0]
+        const out_of_range = heart_rate_zone.filter(value => value.name === 'Out of Range')[0]
+
+        return new UserIntradayTimeSeries().fromJSON({
+            patient_id: userId,
+            start_time: dataset_intraday.length ? dataset_intraday[0].time : undefined,
+            end_time: dataset_intraday.length ? dataset_intraday[dataset_intraday.length - 1].time : undefined,
+            type: 'heart_rate',
+            interval: `${intraday_data.datasetInterval}${intraday_data.datasetType.substr(0, 3)}`,
+            zones: {
+                fat_burn: {
+                    min: fat_burn.min,
+                    max: fat_burn.max,
+                    duration: fat_burn.minutes * 60000,
+                    calories: fat_burn.caloriesOut
+                },
+                cardio: {
+                    min: cardio.min,
+                    max: cardio.max,
+                    duration: cardio.minutes * 60000,
+                    calories: cardio.caloriesOut
+                },
+                peak: {
+                    min: peak.min,
+                    max: peak.max,
+                    duration: peak.minutes * 60000,
+                    calories: peak.caloriesOut
+                },
+                out_of_range: {
+                    min: out_of_range.min,
+                    max: out_of_range.max,
+                    duration: out_of_range.minutes * 60000,
+                    calories: out_of_range.caloriesOut
+                }
+            },
+            data_set: dataset_intraday
+        })
+    }
+
+    public parseTimeSeriesResources(userId: string, resource: string, dataset: Array<any>): UserTimeSeries {
+        if (!dataset || !dataset.length) return undefined!
+        return new UserTimeSeries().fromJSON({
+            patient_id: userId,
+            type: resource,
+            data_set: dataset.map(item => {
+                return {
+                    date: item.dateTime,
+                    value: item.value
+                }
+            })
+        })
+    }
+
+    public parseTimeSeriesHeartRate(userId: string, dataset: Array<any>): UserTimeSeries {
+        return new UserTimeSeries().fromJSON({
+            patient_id: userId,
+            type: 'heart_rate',
+            data_set: dataset.map(item => {
+                const fat_burn = item.heartRateZones.filter(value => value.name === 'Fat Burn')[0]
+                const cardio = item.heartRateZones.filter(value => value.name === 'Cardio')[0]
+                const peak = item.heartRateZones.filter(value => value.name === 'Peak')[0]
+                const out_of_range = item.heartRateZones.filter(value => value.name === 'Out of Range')[0]
+                return {
+                    date: item.dateTime,
+                    zones: {
+                        fat_burn: {
+                            min: fat_burn.min,
+                            max: fat_burn.max,
+                            duration: fat_burn.minutes * 60000,
+                            calories: fat_burn.caloriesOut
+                        },
+                        cardio: {
+                            min: cardio.min,
+                            max: cardio.max,
+                            duration: cardio.minutes * 60000,
+                            calories: cardio.caloriesOut
+                        },
+                        peak: {
+                            min: peak.min,
+                            max: peak.max,
+                            duration: peak.minutes * 60000,
+                            calories: peak.caloriesOut
+                        },
+                        out_of_range: {
+                            min: out_of_range.min,
+                            max: out_of_range.max,
+                            duration: out_of_range.minutes * 60000,
+                            calories: out_of_range.caloriesOut
+                        }
+                    }
+                }
+            })
+        })
+    }
+
     private parseWeightList(weights: Array<any>, userId: string): Array<Weight> {
         if (!weights || !weights.length) return []
         return weights.map(item => new Weight().fromJSON(this.parseWeight(item, userId)))
@@ -731,6 +932,44 @@ export class FitbitDataRepository implements IFitbitDataRepository {
                 result.push({
                     dateTime: logsListOne[i].dateTime,
                     value: `${parseInt(logsListOne[i].value, 10) + parseInt(logsListTwo[i].value, 10)}`
+                })
+            }
+        }
+        return result
+    }
+
+    public mergeTimeSeriesValues(intradayOne: any, intradayTwo: any): any {
+        const result: any = { 'activities-minutes-active': [] }
+        for (let i = 0; i < intradayOne; i++) {
+            if (intradayOne[i].dateTime === intradayTwo[i].dateTime) {
+                result['activities-minutes-active'].push({
+                    dateTime: intradayOne[i].dateTime,
+                    value: `${parseInt(intradayOne[i].value, 10) + parseInt(intradayTwo[i].value, 10)}`
+                })
+            }
+        }
+        return result
+    }
+
+    public mergeIntradayTimeSeriesValues(intradayOne: any, intradayTwo: any): any {
+        const dataset_one: Array<any> = intradayOne['activities-minutesFairlyActive-intraday'].dataset
+        const dataset_two: Array<any> = intradayOne['activities-minutesVeryActive-intraday'].dataset
+        const result: any = {
+            'activities-minutes-active': [{
+                dateTime: intradayOne['activities-minutesFairlyActive'][0].dateTime,
+                value: parseInt(intradayOne['activities-minutesFairlyActive'][0].value, 10) +
+                    parseInt(intradayTwo['activities-minutesVeryActive'][0].value, 10)
+            }],
+            'activities-minutes-active-intraday': {
+                dataset: []
+            }
+        }
+
+        for (let i = 0; i < dataset_one.length; i++) {
+            if (dataset_one[i].time === dataset_two[i].time) {
+                result['activities-minutes-active-intraday'].dataset.push({
+                    time: dataset_one[i].time,
+                    value: parseInt(dataset_one[i].value, 10) + parseInt(dataset_two[i].value, 10)
                 })
             }
         }

@@ -1,27 +1,26 @@
 import { IJSONSerializable } from '../utils/json.serializable.interface'
 import { IJSONDeserializable } from '../utils/json.deserializable.interface'
-import { HeartRateSummary } from './heart.rate.summary'
-import { Item } from './item'
 import { JsonUtils } from '../utils/json.utils'
+import { HeartRateZone } from './heart.rate.zone'
 
 export class TimeSeriesHeartRate implements IJSONSerializable, IJSONDeserializable<TimeSeriesHeartRate> {
-    private _summary?: HeartRateSummary
-    private _data_set?: Array<Item>
+    private _date?: string
+    private _zones?: HeartRateZone
 
-    get summary(): HeartRateSummary | undefined {
-        return this._summary
+    get date(): string | undefined {
+        return this._date
     }
 
-    set summary(value: HeartRateSummary | undefined) {
-        this._summary = value
+    set date(value: string | undefined) {
+        this._date = value
     }
 
-    get data_set(): Array<Item> | undefined {
-        return this._data_set
+    get zones(): HeartRateZone | undefined {
+        return this._zones
     }
 
-    set data_set(value: Array<Item> | undefined) {
-        this._data_set = value
+    set zones(value: HeartRateZone | undefined) {
+        this._zones = value
     }
 
     public fromJSON(json: any): TimeSeriesHeartRate {
@@ -30,15 +29,15 @@ export class TimeSeriesHeartRate implements IJSONSerializable, IJSONDeserializab
             json = JSON.parse(json)
         }
 
-        if (json.summary !== undefined) this.summary = new HeartRateSummary().fromJSON(json.summary)
-        if (json.data_set !== undefined) this.data_set = json.data_set.map(item => new Item().fromJSON(item))
+        if (json.patient_id !== undefined) this.date = json.patient_id
+        if (json.zones !== undefined) this.zones = new HeartRateZone().fromJSON(json.zones)
         return this
     }
 
     public toJSON(): any {
         return {
-            summary: this.summary ? this.summary.toJSON() : undefined,
-            data_set: this.data_set && this.data_set.length ? this.data_set.map(item => item.toJSON()) : []
+            date: this.date,
+            zones: this.zones ? this.zones.toJSON() : undefined
         }
     }
 }
