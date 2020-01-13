@@ -43,6 +43,15 @@ import { IConnectionEventBus } from '../infrastructure/port/connection.event.bus
 import { ConnectionRabbitMQ } from '../infrastructure/eventbus/rabbitmq/connection.rabbitmq'
 import { IEventBus } from '../infrastructure/port/event.bus.interface'
 import { EventBusRabbitMQ } from '../infrastructure/eventbus/rabbitmq/eventbus.rabbitmq'
+import { Sleep } from '../application/domain/model/sleep'
+import { SleepEntity } from '../infrastructure/entity/sleep.entity'
+import { SleepEntityMapper } from '../infrastructure/entity/mapper/sleep.entity.mapper'
+import { PhysicalActivity } from '../application/domain/model/physical.activity'
+import { PhysicalActivityEntity } from '../infrastructure/entity/physical.activity.entity'
+import { PhysicalActivityEntityMapper } from '../infrastructure/entity/mapper/physical.activity.entity.mapper'
+import { Weight } from '../application/domain/model/weight'
+import { WeightEntity } from '../infrastructure/entity/weight.entity'
+import { WeightEntityMapper } from '../infrastructure/entity/mapper/weight.entity.mapper'
 
 class IoC {
     private readonly _container: Container
@@ -117,6 +126,15 @@ class IoC {
         this.container
             .bind<IEntityMapper<Resource, ResourceEntity>>(Identifier.RESOURCE_ENTITY_MAPPER)
             .to(ResourceEntityMapper).inSingletonScope()
+        this.container
+            .bind<IEntityMapper<Sleep, SleepEntity>>(Identifier.SLEEP_ENTITY_MAPPER)
+            .to(SleepEntityMapper).inSingletonScope()
+        this.container
+            .bind<IEntityMapper<PhysicalActivity, PhysicalActivityEntity>>(Identifier.PHYSICAL_ACTIVITY_ENTITY_MAPPER)
+            .to(PhysicalActivityEntityMapper).inSingletonScope()
+        this.container
+            .bind<IEntityMapper<Weight, WeightEntity>>(Identifier.WEIGHT_ENTITY_MAPPER)
+            .to(WeightEntityMapper).inSingletonScope()
 
         // Background Services
         this._container

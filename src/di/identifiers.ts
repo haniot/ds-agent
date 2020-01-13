@@ -30,6 +30,9 @@ export abstract class Identifier {
     public static readonly USER_AUTH_DATA_ENTITY_MAPPER: any = Symbol.for('UserAuthDataEntityMapper')
     public static readonly FITBIT_AUTH_DATA_ENTITY_MAPPER: any = Symbol.for('FitbitAuthDataEntityMapper')
     public static readonly RESOURCE_ENTITY_MAPPER: any = Symbol.for('ResourceEntityMapper')
+    public static readonly SLEEP_ENTITY_MAPPER: any = Symbol.for('SleepEntityMapper')
+    public static readonly PHYSICAL_ACTIVITY_ENTITY_MAPPER: any = Symbol.for('PhysicalActivityEntityMapper')
+    public static readonly WEIGHT_ENTITY_MAPPER: any = Symbol.for('WeightEntityMapper')
 
     // Background Services
     public static readonly MONGODB_CONNECTION_FACTORY: any = Symbol.for('ConnectionFactoryMongodb')

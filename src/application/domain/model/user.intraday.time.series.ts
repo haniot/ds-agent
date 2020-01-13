@@ -4,6 +4,7 @@ import { IJSONSerializable } from '../utils/json.serializable.interface'
 import { IJSONDeserializable } from '../utils/json.deserializable.interface'
 import { JsonUtils } from '../utils/json.utils'
 import { HeartRateZone } from './heart.rate.zone'
+import { TimeSeriesItem } from './time.series.item'
 
 export class UserIntradayTimeSeries implements IJSONSerializable, IJSONDeserializable<UserIntradayTimeSeries> {
     private _patient_id?: string
@@ -86,7 +87,7 @@ export class UserIntradayTimeSeries implements IJSONSerializable, IJSONDeseriali
             if (json.data_set !== undefined && json.data_set instanceof Array) {
                 this.data_set = json.data_set.map(item => {
                     return json.type === 'heart_rate' ?
-                        new TimeSeriesHeartRate().fromJSON(item) : new TimeSeries().fromJSON(item)
+                        new TimeSeriesHeartRate().fromJSON(item) : new TimeSeriesItem().fromJSON(item)
                 })
             }
         }
