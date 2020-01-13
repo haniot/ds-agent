@@ -1,6 +1,5 @@
 import { DefaultEntityMock } from '../../mocks/models/default.entity.mock'
 import { assert } from 'chai'
-import { LogSync } from '../../../src/application/domain/model/log.sync'
 import { DataSync } from '../../../src/application/domain/model/data.sync'
 
 describe('Models: DataSync', () => {
@@ -11,7 +10,6 @@ describe('Models: DataSync', () => {
                 assert.propertyVal(res, 'activities', 1)
                 assert.propertyVal(res, 'sleep', 1)
                 assert.propertyVal(res, 'weights', 1)
-                assert.deepPropertyVal(res, 'logs', new LogSync().fromJSON(DefaultEntityMock.LOG_SYNC))
             })
         })
         context('when convert a json string into a model', () => {
@@ -20,7 +18,6 @@ describe('Models: DataSync', () => {
                 assert.propertyVal(res, 'activities', 1)
                 assert.propertyVal(res, 'sleep', 1)
                 assert.propertyVal(res, 'weights', 1)
-                assert.deepPropertyVal(res, 'logs', new LogSync().fromJSON(DefaultEntityMock.LOG_SYNC))
             })
         })
         context('when json is invalid', () => {

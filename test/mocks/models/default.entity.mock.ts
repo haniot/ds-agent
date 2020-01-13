@@ -221,6 +221,5 @@ export abstract class DefaultEntityMock {
         activities: 1,
         sleep: 1,
         weights: 1,
-        logs: DefaultEntityMock.LOG_SYNC
     }
 }

@@ -3,9 +3,17 @@ import { IntegrationEvent } from '../../../src/application/integration-event/eve
 import { IEventBusOptions } from '../../../src/infrastructure/port/connection.factory.interface'
 import qs from 'query-strings-parser'
 import { DefaultEntityMock } from '../models/default.entity.mock'
+import { IEventBus } from '../../../src/infrastructure/port/event.bus.interface'
+import { IDisposable } from '../../../src/infrastructure/port/disposable.interface'
+import { IConnectionEventBus } from '../../../src/infrastructure/port/connection.event.bus.interface'
+import { IQuery } from '../../../src/application/port/query.interface'
 
-export class EventBusRabbitMQMock /*implements IEventBus, IDisposable */{
+export class EventBusRabbitMQMock implements IEventBus, IDisposable {
     private readonly _bus!: any
+    public readonly connectionPub: IConnectionEventBus = undefined!
+    public connectionRpcClient: IConnectionEventBus = undefined!
+    public connectionRpcServer: IConnectionEventBus = undefined!
+    public connectionSub: IConnectionEventBus = undefined!
 
     constructor() {
         this._bus = {
@@ -49,6 +57,22 @@ export class EventBusRabbitMQMock /*implements IEventBus, IDisposable */{
 
     public initialize(uri: string, options?: IEventBusOptions): Promise<void> {
         return Promise.resolve()
+    }
+
+    public enableLogger(): void {
+        return
+    }
+
+    public executeResource(resourceName: string, query?: string | IQuery): Promise<any> {
+        return Promise.resolve()
+    }
+
+    public provideResource(name: string, listener: (...any) => any): Promise<boolean> {
+        return Promise.resolve(true)
+    }
+
+    public publish(event: IntegrationEvent<any>, routingKey: string): Promise<boolean> {
+        return Promise.resolve(true)
     }
 
 }

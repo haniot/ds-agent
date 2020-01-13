@@ -22,7 +22,6 @@ import { IResourceRepository } from '../../application/port/resource.repository.
 import { Query } from './query/query'
 import { Resource } from '../../application/domain/model/resource'
 import { DataSync } from '../../application/domain/model/data.sync'
-import { LogSync } from '../../application/domain/model/log.sync'
 import { UserAuthData } from '../../application/domain/model/user.auth.data'
 import { UserAuthDataEntity } from '../entity/user.auth.data.entity'
 import { FitbitClientException } from '../../application/domain/exception/fitbit.client.exception'
@@ -35,8 +34,9 @@ import { UserTimeSeries } from '../../application/domain/model/user.time.series'
 import { UserIntradayTimeSeries } from '../../application/domain/model/user.intraday.time.series'
 import { SleepEntity } from '../entity/sleep.entity'
 import { WeightEntity } from '../entity/weight.entity'
-import { IntradayTimeSeriesSyncEvent } from '../../application/integration-event/event/intraday.time.series.sync.event'
 import { TimeSeriesSyncEvent } from '../../application/integration-event/event/time.series.sync.event'
+import { IntradayTimeSeriesSyncEvent } from '../../application/integration-event/event/intraday.time.series.sync.event'
+import { TimeSeriesSync } from '../../application/domain/model/time.series.sync'
 
 @injectable()
 export class FitbitDataRepository implements IFitbitDataRepository {
@@ -60,7 +60,7 @@ export class FitbitDataRepository implements IFitbitDataRepository {
     public removeFitbitAuthData(userId: string): Promise<boolean> {
         return new Promise<boolean>((resolve, reject) => {
             this._userAuthRepoModel
-                .updateOne({ user_id: userId }, { $unset: { fitbit: '' } })
+                .updateOne({ user_id: userId }, { $unset: { fitbitu: '' } })
                 .then(res => resolve(!!res))
                 .catch(err => reject(this.mongoDBErrorListener(err)))
         })
@@ -137,6 +137,7 @@ export class FitbitDataRepository implements IFitbitDataRepository {
                     let syncWeights: Array<any> = []
                     let syncSleep: Array<any> = []
                     let syncActivities: Array<any> = []
+
                     let stepsTimeSeries: any
                     let caloriesTimeSeries: any
                     let minutesFairlyActiveTimeSeries: any
@@ -186,8 +187,8 @@ export class FitbitDataRepository implements IFitbitDataRepository {
 
                     const minutesActiveTimeSerie: any =
                         this.mergeTimeSeriesValues(
-                            minutesFairlyActiveTimeSeries['activities-minutesFairlyActive-intraday'],
-                            minutesVeryActiveTimeSeries['activities-minutesVeryActive-intraday'])
+                            minutesFairlyActiveTimeSeries['activities-minutesFairlyActive'],
+                            minutesVeryActiveTimeSeries['activities-minutesVeryActive'])
 
                     const minutesActiveIntradayTimeSeries: any =
                         this.mergeIntradayTimeSeriesValues(
@@ -214,7 +215,6 @@ export class FitbitDataRepository implements IFitbitDataRepository {
 
                     const heartRateSeries: UserTimeSeries =
                         this.parseTimeSeriesHeartRate(userId, heartRateTimeSeries['activities-heart'])
-
                     const stepsIntradaySeries: UserIntradayTimeSeries = this.parseIntradayTimeSeriesResources(userId,
                         'steps', stepsIntradayTimeSeries)
                     const caloriesIntradaySeries: UserIntradayTimeSeries =
@@ -223,10 +223,6 @@ export class FitbitDataRepository implements IFitbitDataRepository {
                         this.parseIntradayTimeSeriesResources(userId, 'active-minutes', minutesActiveIntradayTimeSeries)
                     const heartRateIntradaySeries: UserIntradayTimeSeries =
                         this.parseIntradayTimeSeriesHeartRate(userId, heartRateIntradayTimeSeries)
-                    stepsIntradaySeries
-                    caloriesIntradaySeries
-                    minutesActiveIntradaySeries
-                    heartRateIntradaySeries
 
                     // The sync data must be published to the message bus.
                     if (activitiesList.length) {
@@ -289,16 +285,34 @@ export class FitbitDataRepository implements IFitbitDataRepository {
                     if (stepsIntradaySeries !== undefined) {
                         this._eventBus
                             .publish(new IntradayTimeSeriesSyncEvent(new Date(),
-                                userId, stepsIntradaySeries), 'intraday.timeseries.sync')
+                                userId, stepsIntradaySeries), 'intraday.sync')
                             .then(() => this._logger.info(`Steps intraday time series from ${userId} successful published!`))
+                            .catch(err => this._logger.error(`Error publishing steps intraday time series: ${err.message}`))
+                    }
+                    if (caloriesIntradaySeries !== undefined) {
+                        this._eventBus
+                            .publish(new IntradayTimeSeriesSyncEvent(new Date(),
+                                userId, caloriesIntradaySeries), 'intraday.sync')
+                            .then(() => this._logger.info(`Calories intraday time series from ${userId} successful published!`))
                             .catch(err => this._logger.error(`Error publishing steps intraday time series: ${err.message}`))
                     }
                     if (minutesActiveIntradaySeries !== undefined) {
                         this._eventBus
                             .publish(new IntradayTimeSeriesSyncEvent(new Date(),
-                                userId, minutesActiveIntradaySeries), 'intraday.timeseries.sync')
-                            .then(() => this._logger.info(`Minutes Active intraday time series from ${userId} successful published!`))
-                            .catch(err => this._logger.error(`Error publishing minutes active intraday time series: ${err.message}`))
+                                userId, minutesActiveIntradaySeries), 'intraday.sync')
+                            .then(() => this._logger
+                                .info(`Minutes Active intraday time series from ${userId} successful published!`))
+                            .catch(err => this._logger
+                                .error(`Error publishing minutes active intraday time series: ${err.message}`))
+                    }
+                    if (heartRateIntradaySeries !== undefined) {
+                        this._eventBus
+                            .publish(new IntradayTimeSeriesSyncEvent(new Date(),
+                                userId, heartRateIntradaySeries), 'intraday.sync')
+                            .then(() => this._logger
+                                .info(`Heartrate intraday time series from ${userId} successful published!`))
+                            .catch(err => this._logger
+                                .error(`Error publishing minutes active intraday time series: ${err.message}`))
                     }
 
                     // Finally, the last sync variable from user needs to be updated
@@ -312,13 +326,22 @@ export class FitbitDataRepository implements IFitbitDataRepository {
                     // Build Object to return
                     const dataSync: DataSync = new DataSync()
                     dataSync.user_id = userId
-                    // dataSync.activities = activitiesList.length || 0
-                    // dataSync.weights = weightList.length || 0
-                    // dataSync.sleep = sleepList.length || 0
-                    dataSync.logs = new LogSync().fromJSON({
-                        steps: 0,
-                        calories: 0,
-                        active_minutes: 0
+                    dataSync.activities = activitiesList.length || 0
+                    dataSync.weights = weightList.length || 0
+                    dataSync.sleep = sleepList.length || 0
+                    dataSync.timeseries = new TimeSeriesSync().fromJSON({
+                        steps: stepsSeries.data_set!.length || 0,
+                        calories: caloriesSeries.data_set!.length || 0,
+                        distance: 0,
+                        heart_rate: heartRateSeries.data_set!.length || 0,
+                        active_minutes: minutesActiveSeries.data_set!.length || 0
+                    })
+                    dataSync.intraday = new TimeSeriesSync().fromJSON({
+                        steps: stepsIntradaySeries.data_set!.length || 0,
+                        calories: caloriesIntradaySeries.data_set!.length || 0,
+                        distance: 0,
+                        heart_rate: heartRateIntradaySeries.data_set!.length || 0,
+                        active_minutes: minutesActiveIntradaySeries.data_set!.length || 0
                     })
                     return resolve(dataSync)
                 } catch
@@ -734,25 +757,25 @@ export class FitbitDataRepository implements IFitbitDataRepository {
                     min: fat_burn.min,
                     max: fat_burn.max,
                     duration: fat_burn.minutes * 60000,
-                    calories: fat_burn.caloriesOut
+                    calories: fat_burn.caloriesOut || 0
                 },
                 cardio: {
                     min: cardio.min,
                     max: cardio.max,
                     duration: cardio.minutes * 60000,
-                    calories: cardio.caloriesOut
+                    calories: cardio.caloriesOut || 0
                 },
                 peak: {
                     min: peak.min,
                     max: peak.max,
                     duration: peak.minutes * 60000,
-                    calories: peak.caloriesOut
+                    calories: peak.caloriesOut || 0
                 },
                 out_of_range: {
                     min: out_of_range.min,
                     max: out_of_range.max,
                     duration: out_of_range.minutes * 60000,
-                    calories: out_of_range.caloriesOut
+                    calories: out_of_range.caloriesOut || 0
                 }
             },
             data_set: dataset_intraday
@@ -778,10 +801,10 @@ export class FitbitDataRepository implements IFitbitDataRepository {
             patient_id: userId,
             type: 'heart_rate',
             data_set: dataset.map(item => {
-                const fat_burn = item.heartRateZones.filter(value => value.name === 'Fat Burn')[0]
-                const cardio = item.heartRateZones.filter(value => value.name === 'Cardio')[0]
-                const peak = item.heartRateZones.filter(value => value.name === 'Peak')[0]
-                const out_of_range = item.heartRateZones.filter(value => value.name === 'Out of Range')[0]
+                const fat_burn = item.value.heartRateZones.filter(value => value.name === 'Fat Burn')[0]
+                const cardio = item.value.heartRateZones.filter(value => value.name === 'Cardio')[0]
+                const peak = item.value.heartRateZones.filter(value => value.name === 'Peak')[0]
+                const out_of_range = item.value.heartRateZones.filter(value => value.name === 'Out of Range')[0]
                 return {
                     date: item.dateTime,
                     zones: {
@@ -789,25 +812,25 @@ export class FitbitDataRepository implements IFitbitDataRepository {
                             min: fat_burn.min,
                             max: fat_burn.max,
                             duration: fat_burn.minutes * 60000,
-                            calories: fat_burn.caloriesOut
+                            calories: fat_burn.caloriesOut || 0
                         },
                         cardio: {
                             min: cardio.min,
                             max: cardio.max,
                             duration: cardio.minutes * 60000,
-                            calories: cardio.caloriesOut
+                            calories: cardio.caloriesOut || 0
                         },
                         peak: {
                             min: peak.min,
                             max: peak.max,
                             duration: peak.minutes * 60000,
-                            calories: peak.caloriesOut
+                            calories: peak.caloriesOut || 0
                         },
                         out_of_range: {
                             min: out_of_range.min,
                             max: out_of_range.max,
                             duration: out_of_range.minutes * 60000,
-                            calories: out_of_range.caloriesOut
+                            calories: out_of_range.caloriesOut || 0
                         }
                     }
                 }

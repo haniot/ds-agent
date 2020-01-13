@@ -1,20 +1,22 @@
 import { IJSONSerializable } from '../utils/json.serializable.interface'
 import { IJSONDeserializable } from '../utils/json.deserializable.interface'
-import { LogSync } from './log.sync'
 import { JsonUtils } from '../utils/json.utils'
+import { TimeSeriesSync } from './time.series.sync'
 
 export class DataSync implements IJSONSerializable, IJSONDeserializable<DataSync> {
     private _activities: number
     private _sleep: number
     private _weights: number
-    private _logs: LogSync
+    private _timeseries: TimeSeriesSync
+    private _intraday: TimeSeriesSync
     private _user_id?: string
 
     constructor() {
         this._activities = 0
         this._sleep = 0
         this._weights = 0
-        this._logs = new LogSync()
+        this._timeseries = new TimeSeriesSync()
+        this._intraday = new TimeSeriesSync()
     }
 
     get user_id(): string | undefined {
@@ -49,12 +51,20 @@ export class DataSync implements IJSONSerializable, IJSONDeserializable<DataSync
         this._weights = value
     }
 
-    get logs(): LogSync {
-        return this._logs
+    get timeseries(): TimeSeriesSync {
+        return this._timeseries
     }
 
-    set logs(value: LogSync) {
-        this._logs = value
+    set timeseries(value: TimeSeriesSync) {
+        this._timeseries = value
+    }
+
+    get intraday(): TimeSeriesSync {
+        return this._intraday
+    }
+
+    set intraday(value: TimeSeriesSync) {
+        this._intraday = value
     }
 
     public fromJSON(json: any): DataSync {
@@ -66,7 +76,8 @@ export class DataSync implements IJSONSerializable, IJSONDeserializable<DataSync
         if (json.activities !== undefined) this.activities = json.activities
         if (json.sleep !== undefined) this.sleep = json.sleep
         if (json.weights !== undefined) this.weights = json.weights
-        if (json.logs !== undefined) this.logs = new LogSync().fromJSON(json.logs)
+        if (json.timeseries !== undefined) this.timeseries = new TimeSeriesSync().fromJSON(json.timeseries)
+        if (json.intraday !== undefined) this.intraday = new TimeSeriesSync().fromJSON(json.intraday)
 
         return this
     }
@@ -76,7 +87,8 @@ export class DataSync implements IJSONSerializable, IJSONDeserializable<DataSync
             activities: this.activities,
             sleep: this.sleep,
             weights: this.weights,
-            logs: this.logs ? this.logs.toJSON() : undefined
+            timeseries: this.timeseries ? this.timeseries.toJSON() : undefined,
+            intraday: this.intraday ? this.intraday.toJSON() : undefined
         }
     }
 }
