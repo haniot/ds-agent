@@ -78,6 +78,7 @@ export class Measurement extends Entity implements IJSONSerializable, IJSONDeser
     public toJSON(): any {
         return {
             id: super.id,
+            type: this.type,
             timestamp: this.timestamp,
             value: this.value,
             unit: this.unit,

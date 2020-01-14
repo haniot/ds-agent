@@ -13,7 +13,7 @@ describe('Models: Weight', () => {
                 assert.propertyVal(res, 'timestamp', DefaultEntityMock.WEIGHT.timestamp)
                 assert.propertyVal(res, 'value', DefaultEntityMock.WEIGHT.value)
                 assert.propertyVal(res, 'type', DefaultEntityMock.WEIGHT.type)
-                assert.propertyVal(res, 'child_id', DefaultEntityMock.WEIGHT.child_id)
+                assert.propertyVal(res, 'patient_id', DefaultEntityMock.WEIGHT.patient_id)
             })
         })
         context('when convert a json string into a model', () => {
@@ -24,7 +24,7 @@ describe('Models: Weight', () => {
                 assert.propertyVal(res, 'timestamp', DefaultEntityMock.WEIGHT.timestamp)
                 assert.propertyVal(res, 'value', DefaultEntityMock.WEIGHT.value)
                 assert.propertyVal(res, 'type', DefaultEntityMock.WEIGHT.type)
-                assert.propertyVal(res, 'child_id', DefaultEntityMock.WEIGHT.child_id)
+                assert.propertyVal(res, 'patient_id', DefaultEntityMock.WEIGHT.patient_id)
             })
         })
         context('when json is invalid', () => {
@@ -35,7 +35,7 @@ describe('Models: Weight', () => {
                 assert.propertyVal(res, 'timestamp', undefined)
                 assert.propertyVal(res, 'value', undefined)
                 assert.propertyVal(res, 'type', MeasurementType.WEIGHT)
-                assert.propertyVal(res, 'child_id', undefined)
+                assert.propertyVal(res, 'patient_id', undefined)
             })
             it('should return undefined parameters for empty json', () => {
                 const res: Weight = new Weight().fromJSON({})
@@ -44,7 +44,7 @@ describe('Models: Weight', () => {
                 assert.propertyVal(res, 'timestamp', undefined)
                 assert.propertyVal(res, 'value', undefined)
                 assert.propertyVal(res, 'type', MeasurementType.WEIGHT)
-                assert.propertyVal(res, 'child_id', undefined)
+                assert.propertyVal(res, 'patient_id', undefined)
             })
             it('should return undefined parameters for empty json string', () => {
                 const res: Weight = new Weight().fromJSON('')
@@ -53,7 +53,7 @@ describe('Models: Weight', () => {
                 assert.propertyVal(res, 'timestamp', undefined)
                 assert.propertyVal(res, 'value', undefined)
                 assert.propertyVal(res, 'type', MeasurementType.WEIGHT)
-                assert.propertyVal(res, 'child_id', undefined)
+                assert.propertyVal(res, 'patient_id', undefined)
             })
             it('should return undefined parameters for invalid json string', () => {
                 const res: Weight = new Weight().fromJSON('invalid')
@@ -62,7 +62,7 @@ describe('Models: Weight', () => {
                 assert.propertyVal(res, 'timestamp', undefined)
                 assert.propertyVal(res, 'value', undefined)
                 assert.propertyVal(res, 'type', MeasurementType.WEIGHT)
-                assert.propertyVal(res, 'child_id', undefined)
+                assert.propertyVal(res, 'patient_id', undefined)
             })
         })
     })
@@ -84,7 +84,7 @@ describe('Models: Weight', () => {
                 assert.propertyVal(res, 'timestamp', undefined)
                 assert.propertyVal(res, 'value', undefined)
                 assert.propertyVal(res, 'type', MeasurementType.WEIGHT)
-                assert.propertyVal(res, 'child_id', undefined)
+                assert.propertyVal(res, 'patient_id', undefined)
             })
         })
     })

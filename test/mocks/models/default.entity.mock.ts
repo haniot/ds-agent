@@ -1,4 +1,4 @@
-import { LogType } from '../../../src/application/domain/model/log'
+import { LogType } from '../../../src/application/domain/utils/log.type'
 import { ActivityLevelType } from '../../../src/application/domain/model/physical.activity.level'
 import { SleepType } from '../../../src/application/domain/model/sleep'
 import moment from 'moment'
@@ -10,7 +10,7 @@ export abstract class DefaultEntityMock {
         start_time: '2019-09-12T13:36:49.741Z',
         end_time: '2019-09-12T13:06:49.741Z',
         duration: 1800000,
-        child_id: '5d7a4a95c292db05e4f765a8'
+        patient_id: '5d7a4a95c292db05e4f765a8'
     }
 
     public static PAYLOAD: any = {
@@ -61,7 +61,7 @@ export abstract class DefaultEntityMock {
         date: '2019-09-12',
         value: 2,
         type: LogType.CALORIES,
-        child_id: '5d7a4a95c292db05e4f765a8'
+        patient_id: '5d7a4a95c292db05e4f765a8'
     }
 
     public static USER_LOG: any = {
@@ -78,7 +78,7 @@ export abstract class DefaultEntityMock {
         timestamp: '2019-09-12T13:36:49.741Z',
         value: 0,
         unit: 'unit',
-        child_id: '5d7a4a95c292db05e4f765a8'
+        patient_id: '5d7a4a95c292db05e4f765a8'
     }
 
     public static BODY_FAT: any = {
@@ -106,6 +106,7 @@ export abstract class DefaultEntityMock {
     public static HEART_RATE_ZONE: any = {
         min: 80,
         max: 100,
+        calories: [undefined],
         duration: 1000
     }
 
@@ -129,7 +130,35 @@ export abstract class DefaultEntityMock {
         steps: 1000,
         distance: 1000,
         levels: [DefaultEntityMock.PHYSICAL_ACTIVITY_LEVEL],
-        heart_rate: DefaultEntityMock.PHYSICAL_ACTIVITY_HEART_RATE
+        heart_rate_average: [undefined],
+        heart_rate_link: [undefined],
+        calories_link: [undefined],
+        heart_rate_zones: {
+            cardio: {
+                calories: [undefined],
+                duration: 1000,
+                max: 100,
+                min: 80
+            },
+            fat_burn: {
+                calories: [undefined],
+                duration: 1000,
+                max: 100,
+                min: 80
+            },
+            out_of_range: {
+                calories: [undefined],
+                duration: 1000,
+                max: 100,
+                min: 80
+            },
+            peak: {
+                calories: [undefined],
+                duration: 1000,
+                max: 100,
+                min: 80
+            }
+        }
     }
 
     public static RESOURCE: any = {
@@ -194,7 +223,7 @@ export abstract class DefaultEntityMock {
         invalid_token: '5d9270f07d06332a5541d8aa',
         client_error: '5d927225f8f8b947e0766bb6',
         any_fitbit_error: '5d9272ba888cb686ed99d952',
-        child_id: '5d7a4a95c292db05e4f765a8'
+        patient_id: '5d7a4a95c292db05e4f765a8'
     }
 
     public static FITBIT_USER_IDS: any = {
@@ -221,5 +250,19 @@ export abstract class DefaultEntityMock {
         activities: 1,
         sleep: 1,
         weights: 1,
+        intraday: {
+            active_minutes: [undefined],
+            calories: [undefined],
+            distance: [undefined],
+            heart_rate: [undefined],
+            steps: [undefined]
+        },
+        timeseries: {
+            active_minutes: [undefined],
+            calories: [undefined],
+            distance: [undefined],
+            heart_rate: [undefined],
+            steps: [undefined]
+        }
     }
 }

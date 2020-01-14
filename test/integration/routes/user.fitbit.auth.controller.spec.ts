@@ -2,21 +2,21 @@ import { Identifier } from '../../../src/di/identifiers'
 import { App } from '../../../src/app'
 import { expect } from 'chai'
 import { DIContainer } from '../../../src/di/di'
-import { IDatabase } from '../../../src/infrastructure/port/database.interface'
 import { Default } from '../../../src/utils/default'
 import { DefaultEntityMock } from '../../mocks/models/default.entity.mock'
 import { UserAuthRepoModel } from '../../../src/infrastructure/database/schema/oauth.data.schema'
 import { Strings } from '../../../src/utils/strings'
+import { IConnectionDB } from '../../../src/infrastructure/port/connection.db.interface'
 
 const app: App = DIContainer.get(Identifier.APP)
 const request = require('supertest')(app.getExpress())
-const dbConnection: IDatabase = DIContainer.get(Identifier.MONGODB_CONNECTION)
+const dbConnection: IConnectionDB = DIContainer.get(Identifier.MONGODB_CONNECTION)
 
 describe('Routes: UserFitbitAuthController', () => {
 
     before(async () => {
             try {
-                await dbConnection.connect(process.env.MONGODB_URI_TEST || Default.MONGODB_URI_TEST, { interval: 100 })
+                await dbConnection.tryConnect(process.env.MONGODB_URI_TEST || Default.MONGODB_URI_TEST, { interval: 100 })
                 await deleteAll({})
                 await saveData(DefaultEntityMock.USER_AUTH_DATA)
             } catch (err) {

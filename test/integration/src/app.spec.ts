@@ -2,10 +2,10 @@ import { DIContainer } from '../../../src/di/di'
 import { Identifier } from '../../../src/di/identifiers'
 import { App } from '../../../src/app'
 import { expect } from 'chai'
-import { IDatabase } from '../../../src/infrastructure/port/database.interface'
 import { Default } from '../../../src/utils/default'
+import { IConnectionDB } from '../../../src/infrastructure/port/connection.db.interface'
 
-const dbConnection: IDatabase = DIContainer.get(Identifier.MONGODB_CONNECTION)
+const dbConnection: IConnectionDB = DIContainer.get(Identifier.MONGODB_CONNECTION)
 const app: App = DIContainer.get(Identifier.APP)
 const request = require('supertest')(app.getExpress())
 
@@ -13,7 +13,7 @@ describe('App', () => {
 
     before(async () => {
             try {
-                await dbConnection.connect(process.env.MONGODB_URI_TEST || Default.MONGODB_URI_TEST, { interval: 100 })
+                await dbConnection.tryConnect(process.env.MONGODB_URI_TEST || Default.MONGODB_URI_TEST, { interval: 100 })
             } catch (err) {
                 throw new Error('Failure on App test: ' + err.message)
             }

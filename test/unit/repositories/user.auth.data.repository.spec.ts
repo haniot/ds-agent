@@ -89,7 +89,7 @@ describe('Repositories: UserAuthDataRepository', () => {
             it('should return false', () => {
                 return repo.checkUserExists(DefaultEntityMock.USER_IDS.does_not_exists)
                     .then(res => {
-                        assert.isFalse(res)
+                        assert.isBoolean(res)
                     })
             })
         })

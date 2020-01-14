@@ -61,10 +61,5 @@ describe('Models: DataSync', () => {
         assert.equal(res.activities, 0)
         assert.equal(res.sleep, 0)
         assert.equal(res.weights, 0)
-        assert.equal(res.logs.steps, 0)
-        assert.equal(res.logs.calories, 0)
-        assert.equal(res.logs.active_minutes, 0)
-        assert.equal(res.logs.lightly_active_minutes, 0)
-        assert.equal(res.logs.sedentary_minutes, 0)
     }
 })

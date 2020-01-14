@@ -11,7 +11,7 @@ describe('Models: Activity', () => {
                 assert.deepPropertyVal(res, 'start_time', DefaultEntityMock.ACTIVITY.start_time)
                 assert.deepPropertyVal(res, 'end_time', DefaultEntityMock.ACTIVITY.end_time)
                 assert.propertyVal(res, 'duration', DefaultEntityMock.ACTIVITY.duration)
-                assert.propertyVal(res, 'child_id', DefaultEntityMock.ACTIVITY.child_id)
+                assert.propertyVal(res, 'patient_id', DefaultEntityMock.ACTIVITY.patient_id)
             })
         })
         context('when convert a json string into a model', () => {
@@ -21,7 +21,7 @@ describe('Models: Activity', () => {
                 assert.deepPropertyVal(res, 'start_time', DefaultEntityMock.ACTIVITY.start_time)
                 assert.deepPropertyVal(res, 'end_time', DefaultEntityMock.ACTIVITY.end_time)
                 assert.propertyVal(res, 'duration', DefaultEntityMock.ACTIVITY.duration)
-                assert.propertyVal(res, 'child_id', DefaultEntityMock.ACTIVITY.child_id)
+                assert.propertyVal(res, 'patient_id', DefaultEntityMock.ACTIVITY.patient_id)
             })
         })
         context('when json is invalid', () => {
@@ -31,7 +31,7 @@ describe('Models: Activity', () => {
                 assert.deepPropertyVal(res, 'start_time', undefined)
                 assert.deepPropertyVal(res, 'end_time', undefined)
                 assert.propertyVal(res, 'duration', undefined)
-                assert.propertyVal(res, 'child_id', undefined)
+                assert.propertyVal(res, 'patient_id', undefined)
             })
             it('should return undefined parameters for empty json', () => {
                 const res: Activity = new Activity().fromJSON({})
@@ -39,7 +39,7 @@ describe('Models: Activity', () => {
                 assert.deepPropertyVal(res, 'start_time', undefined)
                 assert.deepPropertyVal(res, 'end_time', undefined)
                 assert.propertyVal(res, 'duration', undefined)
-                assert.propertyVal(res, 'child_id', undefined)
+                assert.propertyVal(res, 'patient_id', undefined)
             })
             it('should return undefined parameters for empty json string', () => {
                 const res: Activity = new Activity().fromJSON('')
@@ -47,7 +47,7 @@ describe('Models: Activity', () => {
                 assert.deepPropertyVal(res, 'start_time', undefined)
                 assert.deepPropertyVal(res, 'end_time', undefined)
                 assert.propertyVal(res, 'duration', undefined)
-                assert.propertyVal(res, 'child_id', undefined)
+                assert.propertyVal(res, 'patient_id', undefined)
             })
             it('should return undefined parameters for invalid json string', () => {
                 const res: Activity = new Activity().fromJSON('invalid')
@@ -55,7 +55,7 @@ describe('Models: Activity', () => {
                 assert.deepPropertyVal(res, 'start_time', undefined)
                 assert.deepPropertyVal(res, 'end_time', undefined)
                 assert.propertyVal(res, 'duration', undefined)
-                assert.propertyVal(res, 'child_id', undefined)
+                assert.propertyVal(res, 'patient_id', undefined)
             })
         })
     })
@@ -76,7 +76,7 @@ describe('Models: Activity', () => {
                 assert.deepPropertyVal(res, 'start_time', undefined)
                 assert.deepPropertyVal(res, 'end_time', undefined)
                 assert.propertyVal(res, 'duration', undefined)
-                assert.propertyVal(res, 'child_id', undefined)
+                assert.propertyVal(res, 'patient_id', undefined)
             })
         })
     })

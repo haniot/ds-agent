@@ -2,7 +2,6 @@ import { DefaultEntityMock } from '../../mocks/models/default.entity.mock'
 import { assert } from 'chai'
 import { PhysicalActivity } from '../../../src/application/domain/model/physical.activity'
 import { PhysicalActivityLevel } from '../../../src/application/domain/model/physical.activity.level'
-import { PhysicalActivityHeartRateZone } from '../../../src/application/domain/model/physical.activity.heart.rate.zone'
 
 describe('Models: PhysicalActivity', () => {
     describe('fromJSON()', () => {
@@ -12,14 +11,12 @@ describe('Models: PhysicalActivity', () => {
                 assert.propertyVal(res, 'id', DefaultEntityMock.PHYSICAL_ACTIVITY.id)
                 assert.deepPropertyVal(res, 'start_time', DefaultEntityMock.ACTIVITY.start_time)
                 assert.deepPropertyVal(res, 'end_time', DefaultEntityMock.ACTIVITY.end_time)
-                assert.propertyVal(res, 'child_id', DefaultEntityMock.PHYSICAL_ACTIVITY.child_id)
+                assert.propertyVal(res, 'patient_id', DefaultEntityMock.PHYSICAL_ACTIVITY.patient_id)
                 assert.propertyVal(res, 'name', DefaultEntityMock.PHYSICAL_ACTIVITY.name)
                 assert.deepPropertyVal(res, 'calories', DefaultEntityMock.PHYSICAL_ACTIVITY.calories)
                 assert.deepPropertyVal(res, 'steps', DefaultEntityMock.PHYSICAL_ACTIVITY.steps)
                 assert.deepPropertyVal(res, 'levels',
                     [new PhysicalActivityLevel().fromJSON(DefaultEntityMock.PHYSICAL_ACTIVITY.levels[0])])
-                assert.deepPropertyVal(res, 'heart_rate',
-                    new PhysicalActivityHeartRateZone().fromJSON(DefaultEntityMock.PHYSICAL_ACTIVITY.heart_rate))
             })
         })
         context('when convert a json string into a model', () => {
@@ -29,14 +26,12 @@ describe('Models: PhysicalActivity', () => {
                 assert.propertyVal(res, 'id', DefaultEntityMock.PHYSICAL_ACTIVITY.id)
                 assert.deepPropertyVal(res, 'start_time', DefaultEntityMock.ACTIVITY.start_time)
                 assert.deepPropertyVal(res, 'end_time', DefaultEntityMock.ACTIVITY.end_time)
-                assert.propertyVal(res, 'child_id', DefaultEntityMock.PHYSICAL_ACTIVITY.child_id)
+                assert.propertyVal(res, 'patient_id', DefaultEntityMock.PHYSICAL_ACTIVITY.patient_id)
                 assert.propertyVal(res, 'name', DefaultEntityMock.PHYSICAL_ACTIVITY.name)
                 assert.deepPropertyVal(res, 'calories', DefaultEntityMock.PHYSICAL_ACTIVITY.calories)
                 assert.deepPropertyVal(res, 'steps', DefaultEntityMock.PHYSICAL_ACTIVITY.steps)
                 assert.deepPropertyVal(res, 'levels',
                     [new PhysicalActivityLevel().fromJSON(DefaultEntityMock.PHYSICAL_ACTIVITY.levels[0])])
-                assert.deepPropertyVal(res, 'heart_rate',
-                    new PhysicalActivityHeartRateZone().fromJSON(DefaultEntityMock.PHYSICAL_ACTIVITY.heart_rate))
             })
         })
         context('when json is invalid', () => {
@@ -45,44 +40,40 @@ describe('Models: PhysicalActivity', () => {
                 assert.propertyVal(res, 'id', undefined)
                 assert.deepPropertyVal(res, 'start_time', undefined)
                 assert.deepPropertyVal(res, 'end_time', undefined)
-                assert.propertyVal(res, 'child_id', undefined)
+                assert.propertyVal(res, 'patient_id', undefined)
                 assert.propertyVal(res, 'name', undefined)
                 assert.propertyVal(res, 'calories', undefined)
                 assert.propertyVal(res, 'levels', undefined)
-                assert.propertyVal(res, 'heart_rate', undefined)
             })
             it('should return undefined parameters for empty json', () => {
                 const res: PhysicalActivity = new PhysicalActivity().fromJSON({})
                 assert.propertyVal(res, 'id', undefined)
                 assert.deepPropertyVal(res, 'start_time', undefined)
                 assert.deepPropertyVal(res, 'end_time', undefined)
-                assert.propertyVal(res, 'child_id', undefined)
+                assert.propertyVal(res, 'patient_id', undefined)
                 assert.propertyVal(res, 'name', undefined)
                 assert.propertyVal(res, 'calories', undefined)
                 assert.propertyVal(res, 'levels', undefined)
-                assert.propertyVal(res, 'heart_rate', undefined)
             })
             it('should return undefined parameters for empty json string', () => {
                 const res: PhysicalActivity = new PhysicalActivity().fromJSON('')
                 assert.propertyVal(res, 'id', undefined)
                 assert.deepPropertyVal(res, 'start_time', undefined)
                 assert.deepPropertyVal(res, 'end_time', undefined)
-                assert.propertyVal(res, 'child_id', undefined)
+                assert.propertyVal(res, 'patient_id', undefined)
                 assert.propertyVal(res, 'name', undefined)
                 assert.propertyVal(res, 'calories', undefined)
                 assert.propertyVal(res, 'levels', undefined)
-                assert.propertyVal(res, 'heart_rate', undefined)
             })
             it('should return undefined parameters for invalid json string', () => {
                 const res: PhysicalActivity = new PhysicalActivity().fromJSON('invalid')
                 assert.propertyVal(res, 'id', undefined)
                 assert.deepPropertyVal(res, 'start_time', undefined)
                 assert.deepPropertyVal(res, 'end_time', undefined)
-                assert.propertyVal(res, 'child_id', undefined)
+                assert.propertyVal(res, 'patient_id', undefined)
                 assert.propertyVal(res, 'name', undefined)
                 assert.propertyVal(res, 'calories', undefined)
                 assert.propertyVal(res, 'levels', undefined)
-                assert.propertyVal(res, 'heart_rate', undefined)
             })
         })
     })
@@ -102,11 +93,10 @@ describe('Models: PhysicalActivity', () => {
                 assert.propertyVal(res, 'id', undefined)
                 assert.deepPropertyVal(res, 'start_time', undefined)
                 assert.deepPropertyVal(res, 'end_time', undefined)
-                assert.propertyVal(res, 'child_id', undefined)
+                assert.propertyVal(res, 'patient_id', undefined)
                 assert.propertyVal(res, 'name', undefined)
                 assert.propertyVal(res, 'calories', undefined)
                 assert.propertyVal(res, 'levels', undefined)
-                assert.propertyVal(res, 'heart_rate', undefined)
             })
         })
     })
