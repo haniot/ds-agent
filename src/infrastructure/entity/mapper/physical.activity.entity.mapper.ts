@@ -34,35 +34,18 @@ export class PhysicalActivityEntityMapper implements IEntityMapper<PhysicalActiv
         if (json.averageHeartRate !== undefined) {
             result.heart_rate_average = json.averageHeartRate
             if (json.heartRateZones !== undefined) {
+                const peak: any = json.heartRateZones.filter(zone => zone.name === 'Peak')[0]
+                const out_of_range: any = json.heartRateZones.filter(zone => zone.name === 'Out of Range')[0]
+                const cardio: any = json.heartRateZones.filter(zone => zone.name === 'Cardio')[0]
+                const fat_burn: any = json.heartRateZones.filter(zone => zone.name === 'Fat Burn')[0]
+
+                peak.duration = peak.minutes * 60000
+                out_of_range.duration = out_of_range.minutes * 60000
+                cardio.duration = cardio.minutes * 60000
+                fat_burn.duration = fat_burn.minutes * 60000
+
                 result.heart_rate_zones = new PhysicalActivityHeartRateZone().fromJSON({
-                    out_of_range: json.heartRateZones.filter(zone => {
-                        if (zone.name === 'Out of Range') return {
-                            min: zone.min,
-                            max: zone.max,
-                            duration: zone.minutes * 60000
-                        }
-                    })[0],
-                    fat_burn: json.heartRateZones.filter(zone => {
-                        if (zone.name === 'Fat Burn') return {
-                            min: zone.min,
-                            max: zone.max,
-                            duration: zone.minutes * 60000
-                        }
-                    })[0],
-                    cardio: json.heartRateZones.filter(zone => {
-                        if (zone.name === 'Cardio') return {
-                            min: zone.min,
-                            max: zone.max,
-                            duration: zone.minutes * 60000
-                        }
-                    })[0],
-                    peak: json.heartRateZones.filter(zone => {
-                        if (zone.name === 'Peak') return {
-                            min: zone.min,
-                            max: zone.max,
-                            duration: zone.minutes * 60000
-                        }
-                    })[0]
+                    peak, out_of_range, cardio, fat_burn
                 })
             }
         }
