@@ -29,7 +29,7 @@ export class TimeSeriesHeartRate implements IJSONSerializable, IJSONDeserializab
             json = JSON.parse(json)
         }
 
-        if (json.patient_id !== undefined) this.date = json.patient_id
+        if (json.date !== undefined) this.date = json.date
         if (json.zones !== undefined) this.zones = new HeartRateZone().fromJSON(json.zones)
         return this
     }
