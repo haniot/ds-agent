@@ -84,12 +84,9 @@ export class UserIntradayTimeSeries implements IJSONSerializable, IJSONDeseriali
         if (json.zones !== undefined) this.zones = new HeartRateZone().fromJSON(json.zones)
         if (json.type !== undefined) {
             this.type = json.type
-            if (json.data_set !== undefined && json.data_set instanceof Array) {
-                this.data_set = json.data_set.map(item => {
-                    return json.type === 'heart_rate' ?
-                        new TimeSeriesHeartRate().fromJSON(item) : new TimeSeriesItem().fromJSON(item)
-                })
-            }
+        }
+        if (json.data_set !== undefined && json.data_set instanceof Array) {
+            this.data_set = json.data_set.map(item => new TimeSeriesItem().fromJSON(item))
         }
 
         return this
