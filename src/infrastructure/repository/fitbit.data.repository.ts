@@ -844,13 +844,14 @@ export class FitbitDataRepository implements IFitbitDataRepository {
 
     public parseTimeSeriesResources(userId: string, resource: string, dataset: Array<any>): UserTimeSeries {
         if (!dataset || !dataset.length) return undefined!
+        console.log('im here with', dataset[0].value, typeof dataset[0].value)
         return new UserTimeSeries().fromJSON({
             patient_id: userId,
             type: resource,
             data_set: dataset.map(item => {
                 return {
                     date: item.dateTime,
-                    value: item.value
+                    value: parseFloat(item.value)
                 }
             })
         })
