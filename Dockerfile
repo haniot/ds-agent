@@ -1,4 +1,4 @@
-FROM node:10.16.3
+FROM node:12.13.1
 
 # Create app directory
 RUN mkdir -p /usr/src/ds
@@ -14,7 +14,7 @@ COPY . /usr/src/ds
 # Build app
 RUN npm run build
 
-EXPOSE 5000
-EXPOSE 5001
+EXPOSE 9000
+EXPOSE 9001
 
 CMD ["npm", "start"]
