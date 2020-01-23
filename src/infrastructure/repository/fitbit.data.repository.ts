@@ -427,7 +427,7 @@ export class FitbitDataRepository implements IFitbitDataRepository {
     public publishLastSync(userId: string, lastSync: string): void {
         this._eventBus
             .publish(new FitbitLastSyncEvent(new Date(), {
-                child_id: userId,
+                patient_id: userId,
                 last_sync: lastSync
             }), 'fitbit.lastsync')
             .then(() => this._logger.info(`Last sync from ${userId} successful published!`))

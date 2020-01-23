@@ -131,8 +131,10 @@ export abstract class DefaultEntityMock {
         distance: 1000,
         levels: [DefaultEntityMock.PHYSICAL_ACTIVITY_LEVEL],
         heart_rate_average: [undefined],
-        heart_rate_link: [undefined],
-        calories_link: [undefined],
+        calories_link: DefaultEntityMock.buildLink('calories', DefaultEntityMock.ACTIVITY.patient_id,
+            DefaultEntityMock.ACTIVITY.start_time, DefaultEntityMock.ACTIVITY.end_time),
+        heart_rate_link: DefaultEntityMock.buildLink('heart_rate', DefaultEntityMock.ACTIVITY.patient_id,
+            DefaultEntityMock.ACTIVITY.start_time, DefaultEntityMock.ACTIVITY.end_time),
         heart_rate_zones: {
             cardio: {
                 calories: [undefined],
@@ -264,5 +266,24 @@ export abstract class DefaultEntityMock {
             heart_rate: [undefined],
             steps: [undefined]
         }
+    }
+
+    private static buildLink(type: string, patientId: string, startTime: string, endTime: string): string {
+        if (!patientId || !startTime || !endTime) return ''
+        const startDate: string = startTime.split('T')[0]
+        const endDate: string = endTime.split('T')[0]
+
+        const startTimestamp: Date = new Date(startTime)
+        const endTimestamp: Date = new Date(endTime)
+        const _startTime = `${startTimestamp.getHours().toString().padStart(2, '0')}:`
+            .concat(`${startTimestamp.getMinutes().toString().padStart(2, '0')}:`)
+            .concat(`${startTimestamp.getSeconds().toString().padStart(2, '0')}`)
+        const _endTime = `${endTimestamp.getHours().toString().padStart(2, '0')}:`
+            .concat(`${endTimestamp.getMinutes().toString().padStart(2, '0')}:`)
+            .concat(`${endTimestamp.getSeconds().toString().padStart(2, '0')}`)
+
+        return `/v1/patients/${patientId}/${type}/date/${startDate}/${endDate}`
+            .concat(`/time/${_startTime}/${_endTime}/interval/${type === 'heart_rate' ? '1s' : '1m'}/timeseries`)
+
     }
 }

@@ -20,7 +20,7 @@ export class EventBusRabbitMQMock implements IEventBus, IDisposable {
             getChildren: (query: string): Promise<any> => {
                 const filters: any = qs.parser(query).filters
                 if (filters._id === 'error') return Promise.reject({ message: 'An error occurs!' })
-                return Promise.resolve(filters._id && filters._id === DefaultEntityMock.USER_IDS.child_id ?
+                return Promise.resolve(filters._id && filters._id === DefaultEntityMock.USER_IDS.patient_id ?
                     [DefaultEntityMock.CHILD] : [])
             },
             pubFitbitLastSync: (object: any): Promise<any> => {

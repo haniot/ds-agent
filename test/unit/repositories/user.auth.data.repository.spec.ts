@@ -79,7 +79,7 @@ describe('Repositories: UserAuthDataRepository', () => {
     describe('checkUserExists()', () => {
         context('when check if a user exists', () => {
             it('should return true', () => {
-                return repo.checkUserExists(DefaultEntityMock.USER_IDS.child_id)
+                return repo.checkUserExists(DefaultEntityMock.USER_IDS.patient_id)
                     .then(res => {
                         assert.isTrue(res)
                     })
@@ -109,11 +109,11 @@ describe('Repositories: UserAuthDataRepository', () => {
                 sinon
                     .mock(modelFake)
                     .expects('findOne')
-                    .withArgs({ user_id: DefaultEntityMock.USER_IDS.child_id })
+                    .withArgs({ user_id: DefaultEntityMock.USER_IDS.patient_id })
                     .chain('exec')
                     .resolves(data)
 
-                return repo.getUserAuthDataByUserId(DefaultEntityMock.USER_IDS.child_id)
+                return repo.getUserAuthDataByUserId(DefaultEntityMock.USER_IDS.patient_id)
                     .then(res => {
                         assert.deepEqual(res, data)
                     })
@@ -125,11 +125,11 @@ describe('Repositories: UserAuthDataRepository', () => {
                 sinon
                     .mock(modelFake)
                     .expects('findOne')
-                    .withArgs({ user_id: DefaultEntityMock.USER_IDS.child_id })
+                    .withArgs({ user_id: DefaultEntityMock.USER_IDS.patient_id })
                     .chain('exec')
                     .resolves(undefined)
 
-                return repo.getUserAuthDataByUserId(DefaultEntityMock.USER_IDS.child_id)
+                return repo.getUserAuthDataByUserId(DefaultEntityMock.USER_IDS.patient_id)
                     .then(res => {
                         assert.isUndefined(res)
                     })
@@ -141,14 +141,14 @@ describe('Repositories: UserAuthDataRepository', () => {
                 sinon
                     .mock(modelFake)
                     .expects('findOne')
-                    .withArgs({ user_id: DefaultEntityMock.USER_IDS.child_id })
+                    .withArgs({ user_id: DefaultEntityMock.USER_IDS.patient_id })
                     .chain('exec')
                     .rejects({
                         message: 'An internal error has occurred in the database!',
                         description: 'Please try again later...'
                     })
 
-                return repo.getUserAuthDataByUserId(DefaultEntityMock.USER_IDS.child_id)
+                return repo.getUserAuthDataByUserId(DefaultEntityMock.USER_IDS.patient_id)
                     .catch(err => {
                         assert.propertyVal(err, 'message', 'An internal error has occurred in the database!')
                         assert.propertyVal(err, 'description', 'Please try again later...')
