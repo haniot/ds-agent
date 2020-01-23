@@ -50,7 +50,7 @@ export class UserAuthDataService implements IUserAuthDataService {
                 if (authData.fitbit && authData.fitbit.last_sync) {
                     this._eventBus
                         .publish(new FitbitLastSyncEvent(new Date(), {
-                            child_id: authData.user_id,
+                            patient_id: authData.user_id,
                             last_sync: authData.fitbit.last_sync
                         }), 'fitbit.lastsync')
                         .then(() => this._logger.info(`Last sync from ${authData.user_id} successful published!`))

@@ -9,7 +9,7 @@ export class FitbitErrorEvent extends IntegrationEvent<any> {
         if (!this.error) return {}
         return {
             ...super.toJSON(),
-            error: this.error
+            fitbit: this.error
         }
     }
 }
