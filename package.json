@@ -1,6 +1,6 @@
 {
-  "name": "data-sync-agent",
-  "version": "1.0.0",
+  "name": "ds-agent",
+  "version": "1.0.1",
   "description": "Service responsible for data synchronization of FitBit platform with HANIoT platform.",
   "main": "dist/server.js",
   "scripts": {
@@ -17,7 +17,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/ocariot/data-sync-agent.git"
+    "url": "git+https://github.com/haniot/ds-agent.git"
   },
   "keywords": [
     "microservice",
@@ -29,9 +29,9 @@
   "author": "NUTES/UEPB",
   "license": "Apache-2.0",
   "bugs": {
-    "url": "https://github.com/ocariot/data-sync-agent/issues"
+    "url": "https://github.com/haniot/ds-agent.git/issues"
   },
-  "homepage": "https://github.com/ocariot/data-sync-agent#readme",
+  "homepage": "https://github.com/haniot/ds-agent.git#readme",
   "nyc": {
     "include": [
       "**/*.tsx",
@@ -95,7 +95,7 @@
     "sinon-mongoose": "^2.3.0",
     "supertest": "^4.0.2",
     "ts-node": "^8.6.2",
-    "tslint": "^5.20.1",
+    "tslint": "^6.0.0",
     "typedoc": "^0.16.7",
     "typescript": "^3.7.5"
   }
