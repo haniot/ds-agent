@@ -35,4 +35,8 @@ export class ResourceRepositoryMock implements IResourceRepository {
         return Promise.resolve(item)
     }
 
+    public deleteByQuery(query: IQuery): Promise<boolean> {
+        return Promise.resolve(true)
+    }
+
 }
