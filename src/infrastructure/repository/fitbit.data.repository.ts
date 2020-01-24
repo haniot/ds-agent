@@ -427,7 +427,7 @@ export class FitbitDataRepository implements IFitbitDataRepository {
     public publishLastSync(userId: string, lastSync: string): void {
         this._eventBus
             .publish(new FitbitLastSyncEvent(new Date(), {
-                patient_id: userId,
+                child_id: userId,
                 last_sync: lastSync
             }), 'fitbit.lastsync')
             .then(() => this._logger.info(`Last sync from ${userId} successful published!`))
@@ -688,7 +688,7 @@ export class FitbitDataRepository implements IFitbitDataRepository {
                 return resolve(await this.getUserSleepBefore(
                     data.access_token!,
                     100,
-                    moment().format('YYYY-MM-DD')))
+                    moment().add(1, 'day').format('YYYY-MM-DD')))
             } catch (err) {
                 return reject(err)
             }
