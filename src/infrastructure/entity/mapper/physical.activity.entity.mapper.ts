@@ -34,10 +34,10 @@ export class PhysicalActivityEntityMapper implements IEntityMapper<PhysicalActiv
         if (json.averageHeartRate !== undefined) {
             result.heart_rate_average = json.averageHeartRate
             if (json.heartRateZones !== undefined) {
-                const peak: any = json.heartRateZones.filter(zone => zone.name === 'Peak')[0]
-                const out_of_range: any = json.heartRateZones.filter(zone => zone.name === 'Out of Range')[0]
-                const cardio: any = json.heartRateZones.filter(zone => zone.name === 'Cardio')[0]
-                const fat_burn: any = json.heartRateZones.filter(zone => zone.name === 'Fat Burn')[0]
+                const peak: any = json.heartRateZones.find(zone => zone.name === 'Peak')
+                const out_of_range: any = json.heartRateZones.find(zone => zone.name === 'Out of Range')
+                const cardio: any = json.heartRateZones.find(zone => zone.name === 'Cardio')
+                const fat_burn: any = json.heartRateZones.find(zone => zone.name === 'Fat Burn')
 
                 peak.duration = peak.minutes * 60000
                 out_of_range.duration = out_of_range.minutes * 60000

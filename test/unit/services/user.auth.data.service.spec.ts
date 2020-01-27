@@ -130,7 +130,7 @@ describe('Services: UserAuthDataService', () => {
             it('should return true', () => {
                 return service.revokeFitbitAccessToken(data.user_id!)
                     .then(res => {
-                        assert.isTrue(res)
+                        assert.isUndefined(res)
                     })
             })
         })
@@ -138,7 +138,7 @@ describe('Services: UserAuthDataService', () => {
             it('should return false', () => {
                 return service.revokeFitbitAccessToken(DefaultEntityMock.USER_IDS.does_not_saved)
                     .then(res => {
-                        assert.isFalse(res)
+                        assert.isUndefined(res)
                     })
             })
         })
