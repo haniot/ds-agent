@@ -88,16 +88,17 @@ export class UserAuthDataService implements IUserAuthDataService {
         return this._userAuthDataRepo.findOne(new Query().fromJSON({ filters: { user_id: userId } }))
     }
 
-    public revokeFitbitAccessToken(userId: string): Promise<boolean> {
+    public revokeFitbitAccessToken(userId: string): Promise<void> {
         return new Promise(async (resolve, reject) => {
+            let authData: UserAuthData
             try {
                 ObjectIdValidator.validate(userId)
 
                 // 1. Check if user has authorization data saved.
-                const authData: UserAuthData = await this._userAuthDataRepo
+                authData = await this._userAuthDataRepo
                     .findOne(new Query().fromJSON({ filters: { user_id: userId } }))
                 if (!authData || !authData.fitbit || !authData.fitbit.access_token) {
-                    return resolve(false)
+                    return resolve()
                 }
 
                 // 2. Unsubscribe from Fitbit events.
@@ -115,12 +116,23 @@ export class UserAuthDataService implements IUserAuthDataService {
                         .then(() => this._logger.info(`Fitbit revoke event for patient ${userId} successfully published!`))
                         .catch((err) => this._logger.error('There was an error publishing Fitbit' +
                             `revoke event for patient ${userId}. ${err.message}`))
-                    return resolve(true)
-                } else {
-                    return resolve(false)
                 }
+                return resolve()
             } catch (err) {
-                return reject(err)
+                if (err.type) {
+                    if (err.type === 'expired_token') {
+                        this._fitbitAuthDataRepo
+                            .refreshToken(userId, authData!.fitbit!.access_token!, authData!.fitbit!.refresh_token!)
+                            .then(async newToken => {
+                                await this.revokeFitbitAccessToken(userId)
+                                return resolve()
+                            }).catch(err => {
+                            if (err.type !== 'system') this.updateTokenStatus(userId, err.type)
+                        })
+                    }
+                    this.publishFitbitAuthError(err, userId)
+                }
+                return resolve()
             }
         })
     }
