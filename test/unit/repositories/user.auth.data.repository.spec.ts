@@ -76,33 +76,6 @@ describe('Repositories: UserAuthDataRepository', () => {
         })
     })
 
-    describe('checkUserExists()', () => {
-        context('when check if a user exists', () => {
-            it('should return true', () => {
-                return repo.checkUserExists(DefaultEntityMock.USER_IDS.patient_id)
-                    .then(res => {
-                        assert.isTrue(res)
-                    })
-            })
-        })
-        context('when user does not exists', () => {
-            it('should return false', () => {
-                return repo.checkUserExists(DefaultEntityMock.USER_IDS.does_not_exists)
-                    .then(res => {
-                        assert.isBoolean(res)
-                    })
-            })
-        })
-        context('when a error occurs', () => {
-            it('should reject an error', () => {
-                return repo.checkUserExists('error')
-                    .catch(err => {
-                        assert.propertyVal(err, 'message', 'An error occurs!')
-                    })
-            })
-        })
-    })
-
     describe('getUserAuthDataByUserId()', () => {
         context('when check if a resource exists', () => {
             it('should return true', () => {

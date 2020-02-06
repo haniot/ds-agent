@@ -30,8 +30,16 @@ export class UserFitbitSyncController {
     public async requestDataSync(@request() req: Request, @response() res: Response): Promise<Response> {
         try {
             const result: DataSync = await this._userAuthDataService.syncFitbitDataFromUser(req.params.user_id)
-            return res.status(HttpStatus.ACCEPTED).send(result.toJSON())
+
+            return res.status(HttpStatus.CREATED).send(result.toJSON())
         } catch (err) {
+            if (err.code) {
+                let status: number = HttpStatus.INTERNAL_SERVER_ERROR
+                if ([1011, 1012, 1021].includes(err.code)) status = HttpStatus.BAD_REQUEST
+                else if (err.code === 1401) status = HttpStatus.UNAUTHORIZED
+                else if (err.code === 1429) status = HttpStatus.TOO_MANY_REQUESTS
+                return res.status(status).send(err)
+            }
             const handlerError = ApiExceptionManager.build(err)
             return res.status(handlerError.code).send(handlerError.toJson())
         }
