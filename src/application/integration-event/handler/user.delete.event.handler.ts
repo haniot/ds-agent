@@ -41,19 +41,6 @@ export class UserDeleteEventHandler implements IIntegrationEventHandler<UserDele
             const query: Query = new Query().fromJSON({ filters: { user_id: childId } })
             const userAuthData: UserAuthData = await this.userAuthDataRepo.findOne(query)
             if (userAuthData) {
-                const payload: any = await this.fitbitAuthDataRepo.getTokenPayload(userAuthData.fitbit!.access_token!)
-                if (payload || payload.scopes) {
-                    const scopes: Array<string> = payload.scopes.split(' ')
-                    if (scopes.includes('rwei')) { // Scope reference from fitbit to weight data is rwei
-                        await this.fitbitAuthDataRepo.unsubscribeUserEvent(userAuthData.fitbit!, 'body', 'BODY')
-                    }
-                    if (scopes.includes('ract')) { // Scope reference from fitbit to activity data is ract
-                        await this.fitbitAuthDataRepo.unsubscribeUserEvent(userAuthData.fitbit!, 'activities', 'ACTIVITIES')
-                    }
-                    if (scopes.includes('rsle')) { // Scope reference from fitbit to sleep data is rsle
-                        await this.fitbitAuthDataRepo.unsubscribeUserEvent(userAuthData.fitbit!, 'sleep', 'SLEEP')
-                    }
-                }
                 await this.userAuthDataRepo.deleteByQuery(query)
                 await this.resourceRepo.deleteByQuery(query)
 
