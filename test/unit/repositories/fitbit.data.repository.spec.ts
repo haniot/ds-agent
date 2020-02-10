@@ -71,43 +71,6 @@ describe('Repositories: FitbitDataRepository', () => {
         })
     })
 
-    describe('subscribeUserEvent()', () => {
-        context('when subscribe in a specific event', () => {
-            it('should return undefined', () => {
-                return repo.subscribeUserEvent(data.fitbit!, 'activities', 'ACTIVITIES')
-                    .then(res => {
-                        assert.isUndefined(res)
-                    })
-            })
-        })
-        context('when a error occurs', () => {
-            it('should reject an error', () => {
-                return repo.subscribeUserEvent(data.fitbit!, 'error', 'ACTIVITIES')
-                    .catch(err => {
-                        assert.propertyVal(err, 'message', 'An error occurs!')
-                    })
-            })
-        })
-    })
-
-    describe('unsubscribeUserEvent()', () => {
-        context('when unsubscribe in a specific event', () => {
-            it('should return undefined', () => {
-                return repo.unsubscribeUserEvent(data.fitbit!, 'activities', 'ACTIVITIES')
-                    .then(res => {
-                        assert.isUndefined(res)
-                    })
-            })
-        })
-        context('when a error occurs', () => {
-            it('should reject an error', () => {
-                return repo.unsubscribeUserEvent(data.fitbit!, 'error', 'ACTIVITIES')
-                    .catch(err => {
-                        assert.propertyVal(err, 'message', 'An error occurs!')
-                    })
-            })
-        })
-    })
 
     describe('updateLastSync()', () => {
         context('when update the last data sync', () => {
@@ -129,6 +92,10 @@ describe('Repositories: FitbitDataRepository', () => {
         })
         context('when a database error occurs', () => {
             it('should return undefined', () => {
+                const error: any = {
+                    message: 'An internal error has occurred in the database!',
+                    description: 'Please try again later...'
+                }
                 sinon
                     .mock(modelFake)
                     .expects('findOneAndUpdate')
@@ -136,10 +103,7 @@ describe('Repositories: FitbitDataRepository', () => {
                         { user_id: data.user_id },
                         { 'fitbit.last_sync': data.fitbit!.last_sync },
                         { new: true })
-                    .rejects({
-                        message: 'An internal error has occurred in the database!',
-                        description: 'Please try again later...'
-                    })
+                    .rejects(error)
 
                 return repo.updateLastSync(data.user_id!, data.fitbit!.last_sync!)
                     .catch(err => {

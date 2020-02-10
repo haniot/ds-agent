@@ -34,15 +34,6 @@ export class UserAuthDataRepository extends BaseRepository<UserAuthData, UserAut
         })
     }
 
-    public checkUserExists(userId: string): Promise<boolean> {
-        return new Promise<boolean>((resolve, reject) => {
-            resolve(true)
-            // this._eventBus.bus.getChildren(`?_id=${userId}&limit=1`)
-            //     .then(res => resolve(!!(res && res.length)))
-            //     .catch(err => reject(err))
-        })
-    }
-
     public getUserAuthDataByUserId(userId: string): Promise<UserAuthData> {
         const q = new Query()
         q.filters = { user_id: userId }
