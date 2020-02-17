@@ -37,8 +37,6 @@ Application settings are defined by environment variables. To define the setting
 | `RABBITMQ_CA_PATH` | RabbitMQ CA file location. Must always be provided when using `amqps` protocol. | `.certs/rabbitmqca.crt` |
 | `FITBIT_CLIENT_ID` | Client Id for Fitbit Application resposible to manage user data. | `CLIENT_ID_HERE` |
 | `FITBIT_CLIENT_SECRET` | Client Secret for Fitbit Application resposible to manage user data. | `CLIENT_SECRET_HERE` |
-| `FITBIT_CLIENT_SUBSCRIBER` | Client Subscriber code for automatically get notification from new sync data. | `CLIENT_SUBSCRIBER_HERE` |
-| `FITBIT_SUBSCRIBER_ID` | Customer Subscriber ID, used to manage the subscriber who will receive notification of a user resource. | `FITBIT_SUBSCRIBER_ID` |
 | `EXPRESSION_AUTO_SYNC` | Defines how often the application will automatically sync user data in the background according to the crontab expression. | `0 0 * * 0` |
 
 ## Generate Certificates
@@ -122,8 +120,6 @@ docker run --rm \
   -e REDIS_URI="redis://127.0.0.1:6379" \
   -e FITBIT_CLIENT_ID="YOUR_FITBIT_CLIENT_ID" \
   -e FITBIT_CLIENT_SECRET="YOUR_FITBIT_CLIENT_SECRET" \
-  -e FITBIT_CLIENT_SUBSCRIBER="YOUR_FITBIT_CLIENT_SUBSCRIBER" \
-  -e FITBIT_SUBSCRIBER_ID="SUBSCRIBER_ID_HERE" \
   -e EXPRESSION_AUTO_SYNC="0 0 * * 0" \
   haniot/ds-agent
 ```
@@ -136,8 +132,6 @@ docker run --rm \
   -e REDIS_URI="redis://127.0.0.1:6379" \
   -e FITBIT_CLIENT_ID="YOUR_FITBIT_CLIENT_ID" \
   -e FITBIT_CLIENT_SECRET="YOUR_FITBIT_CLIENT_SECRET" \
-  -e FITBIT_CLIENT_SUBSCRIBER="YOUR_FITBIT_CLIENT_SUBSCRIBER" \
-  -e FITBIT_SUBSCRIBER_ID="SUBSCRIBER_ID_HERE" \
   -e EXPRESSION_AUTO_SYNC="0 0 * * 0" \
   haniot/ds-agent
 ```

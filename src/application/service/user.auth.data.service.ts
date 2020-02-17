@@ -232,7 +232,7 @@ export class UserAuthDataService implements IUserAuthDataService {
    */
     private publishFitbitAuthError(error: any, userId: string): void {
         const fitbit: any = {
-            child_id: userId,
+            patient_id: userId,
             error: this.manageFitbitAuthError(error)
         }
 
