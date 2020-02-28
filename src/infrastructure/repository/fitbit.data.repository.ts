@@ -110,6 +110,22 @@ export class FitbitDataRepository implements IFitbitDataRepository {
                     if (!data || !data.scope) {
                         throw new RepositoryException('Invalid scope, cannot be empty.')
                     }
+
+                    // Data Sync Parameters to result
+                    let qty_pub_activities: number = 0 // Quantity of published activities
+                    let qty_pub_weights: number = 0 // Quantity of published weights
+                    let qty_pub_sleep: number = 0 // Quantity of published sleeps
+                    let qty_pub_ts_steps: number = 0 // Quantity of published tiimeseries steps
+                    let qty_pub_ts_calories: number = 0  // Quantity of published timeseries calories
+                    let qty_pub_ts_distance: number = 0  // Quantity of published timeseries distance
+                    let qty_pub_ts_heart_rate: number = 0  // Quantity of published timeseries heart rate
+                    let qty_pub_ts_active_min: number = 0  // Quantity of published timeseries active minutes
+                    let qty_pub_id_steps: number = 0  // Quantity of published IntradayTimeseries steps
+                    let qty_pub_id_calories: number = 0  // Quantity of published intraday timeseries calories
+                    let qty_pub_id_distance: number = 0  // Quantity of published intraday timeseries distance
+                    let qty_pub_id_heart_rate: number = 0  // Quantity of published intraday timeseries heart rate
+                    let qty_pub_id_active_min: number = 0 // Quantity of published intraday timeseries active minutes
+
                     const scopes: Array<string> = data.scope!.split(' ')
                     const promises: Array<Promise<any>> = []
                     let syncWeights: Array<any> = []
@@ -147,13 +163,16 @@ export class FitbitDataRepository implements IFitbitDataRepository {
                         promises.push(this.getHeartRateTimeSeries(data.access_token!, before_date, after_date))
 
                         // Get Intraday Time Series
-                        promises.push(this.getTimeSeries(data.access_token!, 'steps', before_date, before_date))
-                        promises.push(this.getTimeSeries(data.access_token!, 'distance', before_date, before_date))
-                        promises.push(this.getTimeSeries(data.access_token!, 'calories', before_date, before_date))
-                        promises.push(this.getTimeSeries(data.access_token!, 'minutesFairlyActive', before_date, before_date))
-                        promises.push(this.getTimeSeries(data.access_token!, 'minutesVeryActive', before_date, before_date))
+                        promises.push(this.getMultipleIntradayTimeSeries(data.access_token!, 'calories', before_date, 1))
                         heartRateIntradayTimeSeries =
-                            await this.getHeartRateIntradayTimeSeries(data.access_token!, before_date, '1sec')
+                            await this.getMultipleHeartRateIntradayTimeSeries(data.access_token!, before_date, '1sec', 1)
+                        promises.push(this.getMultipleIntradayTimeSeries(data.access_token!, 'steps', before_date, 1))
+                        promises.push(this.getMultipleIntradayTimeSeries(data.access_token!, 'distance', before_date, 1))
+                        promises.push(
+                            this.getMultipleIntradayTimeSeries(data.access_token!, 'minutesFairlyActive', before_date, 1))
+                        promises.push(
+                            this.getMultipleIntradayTimeSeries(data.access_token!, 'minutesVeryActive', before_date, 1))
+
                         const result = await Promise.all(promises)
                         syncActivities = result[0] || []
                         stepsTimeSeries = result[1] || undefined
@@ -162,9 +181,9 @@ export class FitbitDataRepository implements IFitbitDataRepository {
                         minutesFairlyActiveTimeSeries = result[4] || undefined
                         minutesVeryActiveTimeSeries = result[5] || undefined
                         heartRateTimeSeries = result[6] || undefined
-                        stepsIntradayTimeSeries = result[7] || undefined
-                        distanceIntradayTimeSeries = result[8] || undefined
-                        caloriesIntradayTimeSeries = result[9] || undefined
+                        caloriesIntradayTimeSeries = result[7] || undefined
+                        stepsIntradayTimeSeries = result[8] || undefined
+                        distanceIntradayTimeSeries = result[9] || undefined
                         minutesFairlyActiveIntradayTimeSeries = result[10] || undefined
                         minutesVeryActiveIntradayTimeSeries = result[11] || undefined
                     }
@@ -175,11 +194,6 @@ export class FitbitDataRepository implements IFitbitDataRepository {
                                 minutesFairlyActiveTimeSeries['activities-minutesFairlyActive'] : [],
                             minutesVeryActiveTimeSeries['activities-minutesVeryActive'] ?
                                 minutesVeryActiveTimeSeries['activities-minutesVeryActive'] : [])
-
-                    const minutesActiveIntradayTimeSeries: any =
-                        this.mergeIntradayTimeSeriesValues(
-                            minutesFairlyActiveIntradayTimeSeries,
-                            minutesVeryActiveIntradayTimeSeries)
 
                     // Filter list of data for does not sync data that was saved
                     const weights: Array<any> = await this.filterDataAlreadySync(syncWeights, ResourceDataType.BODY, userId)
@@ -209,32 +223,144 @@ export class FitbitDataRepository implements IFitbitDataRepository {
                             heartRateTimeSeries && heartRateTimeSeries['activities-heart'] ?
                                 heartRateTimeSeries['activities-heart'] : [])
 
-                    // Parse Sync Intraday Time Series
-                    const stepsIntradaySeries: UserIntradayTimeSeries = this.parseIntradayTimeSeriesResources(userId,
-                        'steps', stepsIntradayTimeSeries)
-                    const distanceIntradaySeries: UserIntradayTimeSeries = this.parseIntradayTimeSeriesResources(userId,
-                        'distance', distanceIntradayTimeSeries)
-                    const caloriesIntradaySeries: UserIntradayTimeSeries =
-                        this.parseIntradayTimeSeriesResources(userId, 'calories', caloriesIntradayTimeSeries)
-                    const minutesActiveIntradaySeries: UserIntradayTimeSeries =
-                        this.parseIntradayTimeSeriesResources(userId, 'active_minutes', minutesActiveIntradayTimeSeries)
-                    const heartRateIntradaySeries: UserIntradayTimeSeries =
-                        this.parseIntradayTimeSeriesHeartRate(userId, heartRateIntradayTimeSeries)
+                    // Parse and Publish Sync Intraday Time Series
+                    if (caloriesIntradayTimeSeries && caloriesIntradayTimeSeries instanceof Array) {
+                        const caloriesIntradaySeriesList: Array<UserIntradayTimeSeries> =
+                            caloriesIntradayTimeSeries.map(item => {
+                                return this.parseIntradayTimeSeriesResources(userId, 'calories', item)
+                            })
+                        const caloriesIntradaySeriesListFiltered: Array<UserIntradayTimeSeries> =
+                            caloriesIntradaySeriesList.filter(item => item !== undefined)
+
+                        if (caloriesIntradaySeriesListFiltered && caloriesIntradaySeriesListFiltered.length) {
+                            qty_pub_id_calories = caloriesIntradaySeriesListFiltered
+                                .reduce((prev, item) => {
+                                    return prev + item.data_set!.length
+                                }, 0)
+                            caloriesIntradaySeriesListFiltered.forEach(item => {
+                                this._eventBus
+                                    .publish(
+                                        new IntradayTimeSeriesSyncEvent(new Date(), userId, item), 'intraday.sync')
+                                    .then(() => this._logger
+                                        .info(`Calories intraday time series from ${userId} successful published!`)
+                                    )
+                                    .catch(err => this._logger
+                                        .error(`Error publishing calories intraday time series: ${err.message}`))
+                            })
+                        }
+                    }
+                    if (stepsIntradayTimeSeries && stepsIntradayTimeSeries instanceof Array) {
+                        const stepsIntradaySeriesList: Array<UserIntradayTimeSeries> =
+                            stepsIntradayTimeSeries.map(item => {
+                                return this.parseIntradayTimeSeriesResources(userId, 'steps', item)
+                            })
+                        const stepsIntradaySeriesListFiltered: Array<UserIntradayTimeSeries> =
+                            stepsIntradaySeriesList.filter(item => item !== undefined)
+
+                        if (stepsIntradaySeriesListFiltered && stepsIntradaySeriesListFiltered.length) {
+                            qty_pub_id_steps = stepsIntradaySeriesListFiltered
+                                .reduce((prev, item) => {
+                                    return prev + item.data_set!.length
+                                }, 0)
+                            stepsIntradaySeriesListFiltered.forEach(item => {
+                                this._eventBus
+                                    .publish(
+                                        new IntradayTimeSeriesSyncEvent(new Date(), userId, item), 'intraday.sync')
+                                    .then(() => this._logger
+                                        .info(`Steps intraday time series from ${userId} successful published!`)
+                                    )
+                                    .catch(err => this._logger
+                                        .error(`Error publishing steps intraday time series: ${err.message}`))
+                            })
+                        }
+                    }
+                    if (distanceIntradayTimeSeries && distanceIntradayTimeSeries instanceof Array) {
+                        const distanceIntradaySeriesList: Array<UserIntradayTimeSeries> =
+                            distanceIntradayTimeSeries.map(item => {
+                                return this.parseIntradayTimeSeriesResources(userId, 'distance', item)
+                            })
+                        const distanceIntradaySeriesListFiltered: Array<UserIntradayTimeSeries> =
+                            distanceIntradaySeriesList.filter(item => item !== undefined)
+
+                        if (distanceIntradaySeriesListFiltered && distanceIntradaySeriesListFiltered.length) {
+                            qty_pub_id_distance = distanceIntradaySeriesListFiltered
+                                .reduce((prev, item) => {
+                                    return prev + item.data_set!.length
+                                }, 0)
+                            distanceIntradaySeriesListFiltered.forEach(item => {
+                                this._eventBus
+                                    .publish(
+                                        new IntradayTimeSeriesSyncEvent(new Date(), userId, item), 'intraday.sync')
+                                    .then(() => this._logger
+                                        .info(`Distance intraday time series from ${userId} successful published!`)
+                                    )
+                                    .catch(err => this._logger
+                                        .error(`Error publishing distance intraday time series: ${err.message}`))
+                            })
+                        }
+                    }
+                    if (minutesFairlyActiveIntradayTimeSeries && minutesFairlyActiveIntradayTimeSeries instanceof Array &&
+                        minutesVeryActiveIntradayTimeSeries && minutesVeryActiveIntradayTimeSeries instanceof Array) {
+                        for (let i = 0; i < minutesFairlyActiveIntradayTimeSeries.length; i++) {
+                            const minutesActiveIntradayTimeSeries: any =
+                                this.mergeIntradayTimeSeriesValues(
+                                    minutesFairlyActiveIntradayTimeSeries[i],
+                                    minutesVeryActiveIntradayTimeSeries[i])
+                            const minutesActiveIntradaySeries: UserIntradayTimeSeries =
+                                this.parseIntradayTimeSeriesResources(userId, 'active_minutes', minutesActiveIntradayTimeSeries)
+                            if (minutesActiveIntradaySeries && minutesActiveIntradaySeries.data_set) {
+                                qty_pub_id_active_min += minutesActiveIntradaySeries.data_set.length
+                                this._eventBus
+                                    .publish(new IntradayTimeSeriesSyncEvent(new Date(),
+                                        userId, minutesActiveIntradaySeries), 'intraday.sync')
+                                    .then(() => this._logger
+                                        .info(`Minutes Active intraday time series from ${userId} successful published!`))
+                                    .catch(err => this._logger
+                                        .error(`Error publishing minutes active intraday time series: ${err.message}`))
+                            }
+                        }
+                    }
+                    if (heartRateIntradayTimeSeries && heartRateIntradayTimeSeries instanceof Array) {
+                        const heartRateIntradaySeriesList: Array<UserIntradayTimeSeries> =
+                            heartRateIntradayTimeSeries.map(item => {
+                                return this, this.parseIntradayTimeSeriesHeartRate(userId, item)
+                            })
+                        const heartRateIntradaySeriesListFiltered: Array<UserIntradayTimeSeries> =
+                            heartRateIntradaySeriesList.filter(item => item !== undefined)
+
+                        if (heartRateIntradaySeriesListFiltered && heartRateIntradaySeriesListFiltered.length) {
+                            qty_pub_id_heart_rate = heartRateIntradaySeriesListFiltered
+                                .reduce((prev, item) => {
+                                    return prev + item.data_set!.length
+                                }, 0)
+                            heartRateIntradaySeriesListFiltered.forEach(item => {
+                                this._eventBus
+                                    .publish(new IntradayTimeSeriesSyncEvent(new Date(), userId, item), 'intraday.sync')
+                                    .then(() => this._logger
+                                        .info(`Heartrate intraday time series from ${userId} successful published!`))
+                                    .catch(err => this._logger
+                                        .error(`Error publishing minutes active intraday time series: ${err.message}`))
+                            })
+                        }
+                    }
 
                     // The sync data must be published to the message bus.
                     if (activitiesList.length) {
+                        qty_pub_activities = activitiesList.length
                         this._eventBus
                             .publish(new PhysicalActivitySyncEvent(new Date(), activitiesList), 'physicalactivities.sync')
                             .then(() => this._logger.info(`Physical activities from ${userId} successful published!`))
                             .catch(err => this._logger.error(`Error publishing physical activities: ${err.message}`))
                     }
                     if (weightList.length) {
+                        qty_pub_weights = weightList.length
                         this._eventBus
                             .publish(new WeightSyncEvent(new Date(), weightList), 'weights.sync')
                             .then(() => this._logger.info(`Weight Measurements from ${userId} successful published!`))
                             .catch(err => this._logger.error(`Error publishing weights: ${err.message}`))
                     }
                     if (sleepList.length) {
+                        qty_pub_sleep = sleepList.length
                         this._eventBus
                             .publish(new SleepSyncEvent(new Date(), sleepList), 'sleep.sync')
                             .then(() => this._logger.info(`Sleep from ${userId} successful published!`))
@@ -245,76 +371,41 @@ export class FitbitDataRepository implements IFitbitDataRepository {
                     this.manageResources(syncWeights, userId, ResourceDataType.BODY)
                     this.manageResources(syncSleep, userId, ResourceDataType.SLEEP)
 
-                    if (stepsSeries !== undefined) {
+                    if (stepsSeries && stepsSeries.data_set) {
+                        qty_pub_ts_steps = stepsSeries.data_set.length
                         this._eventBus
                             .publish(new TimeSeriesSyncEvent(new Date(), userId, stepsSeries), 'timeseries.sync')
                             .then(() => this._logger.info(`Step time series from ${userId} successful published!`))
                             .catch(err => this._logger.error(`Error publishing step time series: ${err.message}`))
                     }
-                    if (caloriesSeries !== undefined) {
+                    if (caloriesSeries && caloriesSeries.data_set) {
+                        qty_pub_ts_calories = caloriesSeries.data_set.length
                         this._eventBus
                             .publish(new TimeSeriesSyncEvent(new Date(), userId, caloriesSeries), 'timeseries.sync')
                             .then(() => this._logger.info(`Calories time series from ${userId} successful published!`))
                             .catch(err => this._logger.error(`Error publishing calories time series: ${err.message}`))
                     }
-                    if (distanceSeries !== undefined) {
+                    if (distanceSeries && distanceSeries.data_set) {
+                        qty_pub_ts_distance = distanceSeries.data_set.length
                         this._eventBus
                             .publish(new TimeSeriesSyncEvent(new Date(), userId, distanceSeries), 'timeseries.sync')
                             .then(() => this._logger.info(`Distance time series from ${userId} successful published!`))
                             .catch(err => this._logger.error(`Error publishing distance time series: ${err.message}`))
                     }
-                    if (minutesActiveSeries !== undefined) {
+                    if (minutesActiveSeries && minutesActiveSeries.data_set) {
+                        qty_pub_ts_active_min = minutesActiveSeries.data_set.length
                         this._eventBus
                             .publish(new TimeSeriesSyncEvent(new Date(), userId, minutesActiveSeries), 'timeseries.sync')
                             .then(() => this._logger.info(`Minutes active time series from ${userId} successful published!`))
                             .catch(err => this._logger.error(`Error publishing minutes active time series: ${err.message}`))
                     }
-                    if (heartRateSeries !== undefined) {
+                    if (heartRateSeries && heartRateSeries.data_set) {
+                        qty_pub_ts_heart_rate = heartRateSeries.data_set.length
                         this._eventBus
                             .publish(new TimeSeriesSyncEvent(new Date(), userId, heartRateSeries), 'timeseries.sync')
                             .then(() => this._logger.info(`Heartrate time series from ${userId} successful published!`))
                             .catch(err => this._logger.error(`Error publish heartrate time series: ${err.message}`))
                     }
-                    if (stepsIntradaySeries !== undefined) {
-                        this._eventBus
-                            .publish(new IntradayTimeSeriesSyncEvent(new Date(),
-                                userId, stepsIntradaySeries), 'intraday.sync')
-                            .then(() => this._logger.info(`Steps intraday time series from ${userId} successful published!`))
-                            .catch(err => this._logger.error(`Error publishing steps intraday time series: ${err.message}`))
-                    }
-                    if (distanceIntradaySeries !== undefined) {
-                        this._eventBus
-                            .publish(new IntradayTimeSeriesSyncEvent(new Date(),
-                                userId, distanceIntradaySeries), 'intraday.sync')
-                            .then(() => this._logger.info(`Distance intraday time series from ${userId} successful published!`))
-                            .catch(err => this._logger.error(`Error publishing distance intraday time series: ${err.message}`))
-                    }
-                    if (caloriesIntradaySeries !== undefined) {
-                        this._eventBus
-                            .publish(new IntradayTimeSeriesSyncEvent(new Date(),
-                                userId, caloriesIntradaySeries), 'intraday.sync')
-                            .then(() => this._logger.info(`Calories intraday time series from ${userId} successful published!`))
-                            .catch(err => this._logger.error(`Error publishing steps intraday time series: ${err.message}`))
-                    }
-                    if (minutesActiveIntradaySeries !== undefined) {
-                        this._eventBus
-                            .publish(new IntradayTimeSeriesSyncEvent(new Date(),
-                                userId, minutesActiveIntradaySeries), 'intraday.sync')
-                            .then(() => this._logger
-                                .info(`Minutes Active intraday time series from ${userId} successful published!`))
-                            .catch(err => this._logger
-                                .error(`Error publishing minutes active intraday time series: ${err.message}`))
-                    }
-                    if (heartRateIntradaySeries !== undefined) {
-                        this._eventBus
-                            .publish(new IntradayTimeSeriesSyncEvent(new Date(),
-                                userId, heartRateIntradaySeries), 'intraday.sync')
-                            .then(() => this._logger
-                                .info(`Heartrate intraday time series from ${userId} successful published!`))
-                            .catch(err => this._logger
-                                .error(`Error publishing minutes active intraday time series: ${err.message}`))
-                    }
-
                     // Finally, the last sync variable from user needs to be updated
                     const lastSync = moment.utc().format()
                     this.updateLastSync(userId, lastSync)
@@ -323,26 +414,24 @@ export class FitbitDataRepository implements IFitbitDataRepository {
                         })
                         .catch(err => this._logger.info(`Error at update the last sync: ${err.message}`))
 
-                    // Build Object to return
                     const dataSync: DataSync = new DataSync()
                     dataSync.user_id = userId
-                    dataSync.activities = activitiesList.length || 0
-                    dataSync.weights = weightList.length || 0
-                    dataSync.sleep = sleepList.length || 0
+                    dataSync.activities = qty_pub_activities
+                    dataSync.weights = qty_pub_weights
+                    dataSync.sleep = qty_pub_sleep
                     dataSync.timeseries = new TimeSeriesSync().fromJSON({
-                        steps: stepsSeries && stepsSeries.data_set ? stepsSeries.data_set.length : 0,
-                        calories: caloriesSeries && caloriesSeries.data_set ? caloriesSeries.data_set.length : 0,
-                        distance: distanceSeries && distanceSeries.data_set ? distanceSeries.data_set.length : 0,
-                        heart_rate: heartRateSeries && heartRateSeries.data_set ? heartRateSeries.data_set.length : 0,
-                        active_minutes: minutesActiveSeries && minutesActiveSeries.data_set ?
-                            minutesActiveSeries.data_set.length : 0
+                        steps: qty_pub_ts_steps,
+                        calories: qty_pub_ts_calories,
+                        distance: qty_pub_ts_distance,
+                        heart_rate: qty_pub_ts_heart_rate,
+                        active_minutes: qty_pub_ts_active_min
                     })
                     dataSync.intraday = new TimeSeriesSync().fromJSON({
-                        steps: stepsIntradaySeries.data_set!.length || 0,
-                        calories: caloriesIntradaySeries.data_set!.length || 0,
-                        distance: distanceIntradaySeries.data_set!.length || 0,
-                        heart_rate: heartRateIntradaySeries.data_set!.length || 0,
-                        active_minutes: minutesActiveIntradaySeries.data_set!.length || 0
+                        steps: qty_pub_id_steps,
+                        calories: qty_pub_id_calories,
+                        distance: qty_pub_id_distance,
+                        heart_rate: qty_pub_id_heart_rate,
+                        active_minutes: qty_pub_id_active_min
                     })
                     return resolve(dataSync)
                 } catch
@@ -461,6 +550,12 @@ export class FitbitDataRepository implements IFitbitDataRepository {
     public syncWeightData(data: FitbitAuthData): Promise<Array<any>> {
         return new Promise<Array<any>>(async (resolve, reject) => {
             try {
+                if (data.last_sync) {
+                    return resolve(this.getUserBodyDataFromInterval(
+                        data.access_token!,
+                        moment().subtract(1, 'month').format('YYYY-MM-DD'),
+                        moment().format('YYYY-MM-DD')))
+                }
                 const result: Array<any> = new Array<any>()
                 result.push(
                     this.getUserBodyDataFromInterval(
@@ -528,7 +623,22 @@ export class FitbitDataRepository implements IFitbitDataRepository {
         })
     }
 
-    public getTimeSeries(token: string, resource: string, baseDate: string, endDate: string): Promise<any> {
+    private getMultipleIntradayTimeSeries(token: string, resource: string, baseDate: string, days: number): Promise<Array<any>> {
+        return new Promise<Array<any>>(async (resolve, reject) => {
+            try {
+                const result: Array<any> = new Array<any>()
+                for (let i = 0; i <= days; i++) {
+                    const date: string = moment(baseDate).subtract(i, 'day').format('YYYY-MM-DD')
+                    result.push(this.getTimeSeries(token, resource, date, date))
+                }
+                return resolve((await Promise.all(result)).reduce((prev, current) => prev.concat(current), []))
+            } catch (err) {
+                return reject(err)
+            }
+        })
+    }
+
+    private getTimeSeries(token: string, resource: string, baseDate: string, endDate: string): Promise<any> {
         const path: string = `/activities/${resource}/date/${baseDate}/${endDate}.json`
         return new Promise<any>((resolve, reject) => {
             this._fitbitClientRepo.getDataFromPath(path, token)
@@ -537,7 +647,23 @@ export class FitbitDataRepository implements IFitbitDataRepository {
         })
     }
 
-    public getHeartRateIntradayTimeSeries(token: string, date: string, detailLevel: string): Promise<any> {
+    private getMultipleHeartRateIntradayTimeSeries(
+        token: string, baseDate: string, detailLevel: string, days: number): Promise<Array<any>> {
+        return new Promise<Array<any>>(async (resolve, reject) => {
+            try {
+                const result: Array<any> = new Array<any>()
+                for (let i = 0; i <= days; i++) {
+                    const date: string = moment(baseDate).subtract(i, 'day').format('YYYY-MM-DD')
+                    result.push(this.getHeartRateIntradayTimeSeries(token, date, detailLevel))
+                }
+                return resolve((await Promise.all(result)).reduce((prev, current) => prev.concat(current), []))
+            } catch (err) {
+                return reject(err)
+            }
+        })
+    }
+
+    private getHeartRateIntradayTimeSeries(token: string, date: string, detailLevel: string): Promise<any> {
         const path: string = `/activities/heart/date/${date}/1d/${detailLevel}.json`
         return new Promise<any>((resolve, reject) => {
             this._fitbitClientRepo.getDataFromPath(path, token)
@@ -546,7 +672,7 @@ export class FitbitDataRepository implements IFitbitDataRepository {
         })
     }
 
-    public getHeartRateTimeSeries(token: string, baseDate: string, endDate: string): Promise<any> {
+    private getHeartRateTimeSeries(token: string, baseDate: string, endDate: string): Promise<any> {
         const path: string = `/activities/heart/date/${baseDate}/${endDate}.json`
         return new Promise<any>((resolve, reject) => {
             this._fitbitClientRepo.getDataFromPath(path, token)
@@ -556,7 +682,7 @@ export class FitbitDataRepository implements IFitbitDataRepository {
     }
 
     // Parsers
-    public parseIntradayTimeSeriesResources(userId: string, resource: string, dataset: any): UserIntradayTimeSeries {
+    private parseIntradayTimeSeriesResources(userId: string, resource: string, dataset: any): UserIntradayTimeSeries {
         const intraday_data: any = dataset[`activities-${resource}-intraday`]
         const dataset_intraday: Array<any> = intraday_data.dataset
         return new UserIntradayTimeSeries().fromJSON({
@@ -571,7 +697,7 @@ export class FitbitDataRepository implements IFitbitDataRepository {
         })
     }
 
-    public parseIntradayTimeSeriesHeartRate(userId: string, data: any): UserIntradayTimeSeries {
+    private parseIntradayTimeSeriesHeartRate(userId: string, data: any): UserIntradayTimeSeries {
         const heart_rate_zone: Array<any> = data['activities-heart'][0].value.heartRateZones
         const intraday_data: any = data['activities-heart-intraday']
         const dataset_intraday: Array<any> = intraday_data.dataset
@@ -619,7 +745,7 @@ export class FitbitDataRepository implements IFitbitDataRepository {
         })
     }
 
-    public parseTimeSeriesResources(userId: string, resource: string, dataset: Array<any>): UserTimeSeries {
+    private parseTimeSeriesResources(userId: string, resource: string, dataset: Array<any>): UserTimeSeries {
         if (!dataset || !dataset.length) return undefined!
         return new UserTimeSeries().fromJSON({
             patient_id: userId,
@@ -633,7 +759,7 @@ export class FitbitDataRepository implements IFitbitDataRepository {
         })
     }
 
-    public parseTimeSeriesHeartRate(userId: string, dataset: Array<any>): UserTimeSeries {
+    private parseTimeSeriesHeartRate(userId: string, dataset: Array<any>): UserTimeSeries {
         return new UserTimeSeries().fromJSON({
             patient_id: userId,
             type: 'heart_rate',
@@ -690,7 +816,7 @@ export class FitbitDataRepository implements IFitbitDataRepository {
         return sleep.map(item => this._sleepMapper.transform({ ...item, patient_id: userId }))
     }
 
-    public mergeTimeSeriesValues(intradayOne: Array<any>, intradayTwo: Array<any>): any {
+    private mergeTimeSeriesValues(intradayOne: Array<any>, intradayTwo: Array<any>): any {
         const result: any = { 'activities-minutes-active': [] }
         if (!intradayOne || !intradayOne.length || !intradayTwo || !intradayTwo.length) return result
         for (let i = 0; i < intradayOne.length; i++) {
@@ -704,7 +830,7 @@ export class FitbitDataRepository implements IFitbitDataRepository {
         return result
     }
 
-    public mergeIntradayTimeSeriesValues(intradayOne: any, intradayTwo: any): any {
+    private mergeIntradayTimeSeriesValues(intradayOne: any, intradayTwo: any): any {
         const dataset_one: Array<any> = intradayOne['activities-minutesFairlyActive-intraday'].dataset
         const dataset_two: Array<any> = intradayTwo['activities-minutesVeryActive-intraday'].dataset
 
