@@ -201,28 +201,6 @@ export class FitbitDataRepository implements IFitbitDataRepository {
                     const activities: Array<any> = await this.filterDataAlreadySync(syncActivities,
                         ResourceDataType.ACTIVITIES, userId)
 
-                    // Parse Sync Data
-                    const weightList: Array<Weight> = await this.parseWeightList(weights, userId)
-                    const activitiesList: Array<PhysicalActivity> = await this.parsePhysicalActivityList(activities, userId)
-                    const sleepList: Array<Sleep> = await this.parseSleepList(sleep, userId)
-
-                    // Parse Sync Time Series
-                    const stepsSeries: UserTimeSeries =
-                        this.parseTimeSeriesResources(userId, 'steps', stepsTimeSeries['activities-steps'])
-                    const distanceSeries: UserTimeSeries =
-                        this.parseTimeSeriesResources(userId, 'distance', distanceTimeSeries['activities-distance'])
-                    const caloriesSeries: UserTimeSeries =
-                        this.parseTimeSeriesResources(userId, 'calories', caloriesTimeSeries['activities-calories'])
-                    const minutesActiveSeries: UserTimeSeries =
-                        this.parseTimeSeriesResources(userId,
-                            'active_minutes',
-                            minutesActiveTimeSerie && minutesActiveTimeSerie['activities-minutes-active'] ?
-                                minutesActiveTimeSerie['activities-minutes-active'] : [])
-                    const heartRateSeries: UserTimeSeries =
-                        this.parseTimeSeriesHeartRate(userId,
-                            heartRateTimeSeries && heartRateTimeSeries['activities-heart'] ?
-                                heartRateTimeSeries['activities-heart'] : [])
-
                     // Parse and Publish Sync Intraday Time Series
                     if (caloriesIntradayTimeSeries && caloriesIntradayTimeSeries instanceof Array) {
                         const caloriesIntradaySeriesList: Array<UserIntradayTimeSeries> =
@@ -323,7 +301,7 @@ export class FitbitDataRepository implements IFitbitDataRepository {
                     if (heartRateIntradayTimeSeries && heartRateIntradayTimeSeries instanceof Array) {
                         const heartRateIntradaySeriesList: Array<UserIntradayTimeSeries> =
                             heartRateIntradayTimeSeries.map(item => {
-                                return this, this.parseIntradayTimeSeriesHeartRate(userId, item)
+                                return this.parseIntradayTimeSeriesHeartRate(userId, item)
                             })
                         const heartRateIntradaySeriesListFiltered: Array<UserIntradayTimeSeries> =
                             heartRateIntradaySeriesList.filter(item => item !== undefined)
@@ -344,7 +322,29 @@ export class FitbitDataRepository implements IFitbitDataRepository {
                         }
                     }
 
-                    // The sync data must be published to the message bus.
+                    // Parse Sync Data
+                    const weightList: Array<Weight> = await this.parseWeightList(weights, userId)
+                    const activitiesList: Array<PhysicalActivity> = await this.parsePhysicalActivityList(activities, userId)
+                    const sleepList: Array<Sleep> = await this.parseSleepList(sleep, userId)
+
+                    // Parse Sync Time Series
+                    const stepsSeries: UserTimeSeries =
+                        this.parseTimeSeriesResources(userId, 'steps', stepsTimeSeries['activities-steps'])
+                    const distanceSeries: UserTimeSeries =
+                        this.parseTimeSeriesResources(userId, 'distance', distanceTimeSeries['activities-distance'])
+                    const caloriesSeries: UserTimeSeries =
+                        this.parseTimeSeriesResources(userId, 'calories', caloriesTimeSeries['activities-calories'])
+                    const minutesActiveSeries: UserTimeSeries =
+                        this.parseTimeSeriesResources(userId,
+                            'active_minutes',
+                            minutesActiveTimeSerie && minutesActiveTimeSerie['activities-minutes-active'] ?
+                                minutesActiveTimeSerie['activities-minutes-active'] : [])
+                    const heartRateSeries: UserTimeSeries =
+                        this.parseTimeSeriesHeartRate(userId,
+                            heartRateTimeSeries && heartRateTimeSeries['activities-heart'] ?
+                                heartRateTimeSeries['activities-heart'] : [])
+
+                    // Publish Sync Data
                     if (activitiesList.length) {
                         qty_pub_activities = activitiesList.length
                         this._eventBus
@@ -684,13 +684,14 @@ export class FitbitDataRepository implements IFitbitDataRepository {
     // Parsers
     private parseIntradayTimeSeriesResources(userId: string, resource: string, dataset: any): UserIntradayTimeSeries {
         const intraday_data: any = dataset[`activities-${resource}-intraday`]
+        const date: string = dataset[`activities-${resource}`][0].dateTime
         const dataset_intraday: Array<any> = intraday_data.dataset
         return new UserIntradayTimeSeries().fromJSON({
             patient_id: userId,
             start_time: dataset_intraday.length ?
-                moment().format('YYYY-MM-DDT').concat(dataset_intraday[0].time) : undefined,
+                moment(date).format('YYYY-MM-DDT').concat(dataset_intraday[0].time) : undefined,
             end_time: dataset_intraday.length ?
-                moment().format('YYYY-MM-DDT').concat(dataset_intraday[dataset_intraday.length - 1].time) : undefined,
+                moment(date).format('YYYY-MM-DDT').concat(dataset_intraday[dataset_intraday.length - 1].time) : undefined,
             interval: `${intraday_data.datasetInterval}${intraday_data.datasetType.substr(0, 3)}`,
             type: resource,
             data_set: dataset_intraday
@@ -699,6 +700,7 @@ export class FitbitDataRepository implements IFitbitDataRepository {
 
     private parseIntradayTimeSeriesHeartRate(userId: string, data: any): UserIntradayTimeSeries {
         const heart_rate_zone: Array<any> = data['activities-heart'][0].value.heartRateZones
+        const date: string = data['activities-heart'][0].dateTime
         const intraday_data: any = data['activities-heart-intraday']
         const dataset_intraday: Array<any> = intraday_data.dataset
 
@@ -710,9 +712,9 @@ export class FitbitDataRepository implements IFitbitDataRepository {
         return new UserIntradayTimeSeries().fromJSON({
             patient_id: userId,
             start_time: dataset_intraday.length ?
-                moment().format('YYYY-MM-DDT').concat(dataset_intraday[0].time) : undefined,
+                moment(date).format('YYYY-MM-DDT').concat(dataset_intraday[0].time) : undefined,
             end_time: dataset_intraday.length ?
-                moment().format('YYYY-MM-DDT').concat(dataset_intraday[dataset_intraday.length - 1].time) : undefined,
+                moment(date).format('YYYY-MM-DDT').concat(dataset_intraday[dataset_intraday.length - 1].time) : undefined,
             type: 'heart_rate',
             interval: `${intraday_data.datasetInterval}${intraday_data.datasetType.substr(0, 3)}`,
             zones: {
