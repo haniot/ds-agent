@@ -158,13 +158,15 @@ export class FitbitDataRepository implements IFitbitDataRepository {
                         // Get Activities
                         promises.push(this.syncUserActivities(data))
 
+                        const before_intraday: string = moment(before_date).subtract(2, 'day').format('YYYY-MM-DD')
+
                         // Get Time Series
-                        promises.push(this.getTimeSeries(data.access_token!, 'steps', before_date, after_date))
-                        promises.push(this.getTimeSeries(data.access_token!, 'distance', before_date, after_date))
-                        promises.push(this.getTimeSeries(data.access_token!, 'calories', before_date, after_date))
-                        promises.push(this.getTimeSeries(data.access_token!, 'minutesFairlyActive', before_date, after_date))
-                        promises.push(this.getTimeSeries(data.access_token!, 'minutesVeryActive', before_date, after_date))
-                        promises.push(this.getHeartRateTimeSeries(data.access_token!, before_date, after_date))
+                        promises.push(this.getTimeSeries(data.access_token!, 'steps', before_intraday, after_date))
+                        promises.push(this.getTimeSeries(data.access_token!, 'distance', before_intraday, after_date))
+                        promises.push(this.getTimeSeries(data.access_token!, 'calories', before_intraday, after_date))
+                        promises.push(this.getTimeSeries(data.access_token!, 'minutesFairlyActive', before_intraday, after_date))
+                        promises.push(this.getTimeSeries(data.access_token!, 'minutesVeryActive', before_intraday, after_date))
+                        promises.push(this.getHeartRateTimeSeries(data.access_token!, before_intraday, after_date))
 
                         // Get Intraday Time Series
                         promises.push(this.getTimeSeries(data.access_token!, 'steps', before_date, before_date))
