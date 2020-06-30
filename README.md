@@ -12,8 +12,8 @@ Microservice responsible for data synchronization of FitBit platform with HANIoT
 - Subscriber to resources provided by Fitbit.
  
 ## Prerequisites
-- [Node 8.0.0+](https://nodejs.org/en/download/)
-- [ConnectionMongodb Server 3.0.0+](https://www.mongodb.com/download-center/community)
+- [Node 12.0.0+](https://nodejs.org/en/download/)
+- [ConnectionMongodb Server 4.0.0+](https://www.mongodb.com/download-center/community)
 - [Redis Server 5.0.0+](https://redis.io/download)
 - [RabbitMQ 3.7.0+](https://www.rabbitmq.com/download.html)
 
@@ -27,14 +27,18 @@ Application settings are defined by environment variables. To define the setting
 | `NODE_ENV` | Defines the environment in which the application runs. You can set: `test` _(in this environment, the database defined in `MONGODB_URI_TEST` is used and the logs are disabled for better visualization of the test output)_, `development` _(in this environment, all log levels are enabled)_ and `production` _(in this environment, only the warning and error logs are enabled)_. | `development` |
 | `PORT_HTTP` | Port used to listen for HTTP requests. Any request received on this port is redirected to the HTTPS port. | `9000` |
 | `PORT_HTTPS` | Port used to listen for HTTPS requests. Do not forget to provide the private key and the SSL/TLS certificate. See the topic [generate certificates](#generate-certificates). | `9001` |
-| `HOST_WHITELIST` | Access control based on IP addresses. Only allow IP requests in the unlock list. You can define IP or host, for example: `[127.0.0.1, api.haniot.com]`. To accept requests from any customer, use the character `*`. | `[*]` |
 | `SSL_KEY_PATH` | SSL/TLS certificate private key. | `.certs/server.key` |
 | `SSL_CERT_PATH` | SSL/TLS certificate. | `.certs/server.crt` |
-| `MONGODB_URI` | Database connection URI used if the application is running in development or production environment. The [URI specifications ](https://docs.mongodb.com/manual/reference/connection-string) defined by ConnectionMongodb are accepted. For example: `mongodb://user:pass@host:port/database?options` | `mongodb://127.0.0.1:27017`<br/>`/haniot-ds-agent` |
-| `MONGODB_URI_TEST` | Database connection URI used if the application is running in test environment. The [URI specifications ](https://docs.mongodb.com/manual/reference/connection-string) defined by ConnectionMongodb are accepted. For example: `mongodb://user:pass@host:port/database?options` | `mongodb://127.0.0.1:27017`<br/>`/haniot-ds-agent-test` |
+| `MONGODB_URI` | Database connection URI used if the application is running in development or production environment. The [URI specifications ](https://docs.mongodb.com/manual/reference/connection-string) defined by MongoDB are accepted. For example: `mongodb://user:pass@host:port/database?options`. | `mongodb://127.0.0.1:27017`<br/>`/mhealth-service` |
+| `MONGODB_URI_TEST` | Database connection URI used if the application is running in test environment. The [URI specifications ](https://docs.mongodb.com/manual/reference/connection-string) defined by MongoDB are accepted. For example: `mongodb://user:pass@host:port/database?options`. | `mongodb://127.0.0.1:27017`<br/>`/mhealth-service-test` |
+| `MONGODB_ENABLE_TLS` | Enables/Disables connection to TLS. When TLS is used for connection, client certificates are required (`MONGODB_KEY_PATH`, `MONGODB_CA_PATH`). | `false` |
+| `MONGODB_KEY_PATH` | Client certificate and key in .pem format to connect to MongoDB | `.certs/mongodb/client.pem` |
+| `MONGODB_CA_PATH` | MongoDB Certificate of the Authentication entity (CA) | `.certs/mongodb/ca.pem` |
 | `REDIS_URI` | Redis database connection URI. Using for sync jobs. | `redis://127.0.0.1:6379` |
-| `RABBITMQ_URI` | URI containing the parameters for connection to the message channel RabbitMQ. The [URI specifications ](https://www.rabbitmq.com/uri-spec.html) defined by RabbitMQ are accepted. For example: `amqp://user:pass@host:port` | `amqp://guest:guest`<br/>`@127.0.0.1:5672` |
-| `RABBITMQ_CA_PATH` | RabbitMQ CA file location. Must always be provided when using `amqps` protocol. | `.certs/rabbitmqca.crt` |
+| `RABBITMQ_URI` | URI for connection to RabbitMQ. The [URI specifications ](https://www.rabbitmq.com/uri-spec.html). For example: `amqp://user:pass@host:port/vhost`. When TLS is used for conection the protocol is amqps and client certificates are required (`RABBITMQ_CERT_PATH`, `RABBITMQ_KEY_PATH`, `RABBITMQ_CA_PATH`) | `amqp://guest:guest`<br/>`@127.0.0.1:5672` |
+| `RABBITMQ_CERT_PATH` | RabbitMQ Certificate | `.certs/rabbitmq/cert.pem` |
+| `RABBITMQ_KEY_PATH` | RabbitMQ Key | `.certs/rabbitmq/key.pem` |
+| `RABBITMQ_CA_PATH` | RabbitMQ Certificate of the Authentication entity (CA). | `.certs/rabbitmq/ca.pem` |
 | `FITBIT_CLIENT_ID` | Client Id for Fitbit Application resposible to manage user data. | `CLIENT_ID_HERE` |
 | `FITBIT_CLIENT_SECRET` | Client Secret for Fitbit Application resposible to manage user data. | `CLIENT_SECRET_HERE` |
 | `EXPRESSION_AUTO_SYNC` | Defines how often the application will automatically sync user data in the background according to the crontab expression. | `0 0 * * 0` |
@@ -112,28 +116,24 @@ You can also create the container by passing the settings that are desired by th
 docker run --rm \
   -e PORT_HTTP=9000 \
   -e PORT_HTTPS=9001 \
-  -e HOST_WHITELIST="[localhost]" \
+  -v $(pwd)/.certs:/etc \  
   -e SSL_KEY_PATH=.certs/server.key \
-  -e SSL_CERT_PATH=.certs/server.crt \
-  -e RABBITMQ_URI="amqp://guest:guest@192.168.0.1:5672" \
-  -e MONGODB_URI="mongodb://192.168.0.2:27017/haniot-ds-agent" \
-  -e REDIS_URI="redis://127.0.0.1:6379" \
+  -e SSL_CERT_PATH=.certs/server.crt \  
+  -e MONGODB_ENABLE_TLS=false \
+  -e MONGODB_URI="mongodb://HOSTNAME:27017/haniot-ds-agent" \
+  -e RABBITMQ_URI="amqp://guest:guest@HOSTNAME:5672" \  
+  -e REDIS_URI="redis://HOSTNAME:6379" \
   -e FITBIT_CLIENT_ID="YOUR_FITBIT_CLIENT_ID" \
   -e FITBIT_CLIENT_SECRET="YOUR_FITBIT_CLIENT_SECRET" \
   -e EXPRESSION_AUTO_SYNC="0 0 * * 0" \
-  haniot/ds-agent
+  --name haniot-ds-agent \     
+  haniot/ds-agent-service
 ```
 If the ConnectionMongodb or RabbitMQ instance is in the host local, add the `--net=host` statement when creating the container, this will cause the docker container to communicate with its local host.
 ```sh
 docker run --rm \
   --net=host \
-  -e RABBITMQ_URI="amqp://guest:guest@localhost:5672" \
-  -e MONGODB_URI="mongodb://localhost:27017/haniot-ds-agent" \
-  -e REDIS_URI="redis://127.0.0.1:6379" \
-  -e FITBIT_CLIENT_ID="YOUR_FITBIT_CLIENT_ID" \
-  -e FITBIT_CLIENT_SECRET="YOUR_FITBIT_CLIENT_SECRET" \
-  -e EXPRESSION_AUTO_SYNC="0 0 * * 0" \
-  haniot/ds-agent
+  ...
 ```
 To generate your own docker image, run the following command:
 ```sh
@@ -167,10 +167,10 @@ The `code` parameter is an internal implementation of the API, which serves to m
 [//]: # (These are reference links used in the body of this note.)
 [license-image]: https://img.shields.io/badge/license-Apache%202-blue.svg
 [license-url]: https://github.com/haniot/ds-agent/blob/master/LICENSE
-[node-image]: https://img.shields.io/badge/node-%3E%3D%208.0.0-brightgreen.svg
+[node-image]: https://img.shields.io/badge/node-%3E%3D%2012.0.0-brightgreen.svg
 [node-url]: https://nodejs.org
-[travis-image]: https://travis-ci.org/haniot/ds-agent.svg?branch=master
-[travis-url]: https://travis-ci.org/haniot/ds-agent
+[travis-image]: https://travis-ci.com/haniot/ds-agent.svg?branch=master
+[travis-url]: https://travis-ci.com/haniot/ds-agent
 [coverage-image]: https://coveralls.io/repos/github/haniot/ds-agent/badge.svg
 [coverage-url]: https://coveralls.io/github/haniot/ds-agent?branch=master
 [known-vulnerabilities-image]: https://snyk.io/test/github/haniot/ds-agent/badge.svg

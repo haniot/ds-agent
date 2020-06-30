@@ -41,7 +41,7 @@ export class UserFitbitSyncController {
                 return res.status(status).send(err)
             }
             const handlerError = ApiExceptionManager.build(err)
-            return res.status(handlerError.code).send(handlerError.toJson())
+            return res.status(handlerError.code).send(handlerError.toJSON())
         }
     }
 }
