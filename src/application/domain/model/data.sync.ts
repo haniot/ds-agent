@@ -7,7 +7,6 @@ export class DataSync implements IJSONSerializable, IJSONDeserializable<DataSync
     private _activities: number
     private _sleep: number
     private _weights: number
-    private _timeseries: TimeSeriesSync
     private _intraday: TimeSeriesSync
     private _user_id?: string
 
@@ -15,7 +14,6 @@ export class DataSync implements IJSONSerializable, IJSONDeserializable<DataSync
         this._activities = 0
         this._sleep = 0
         this._weights = 0
-        this._timeseries = new TimeSeriesSync()
         this._intraday = new TimeSeriesSync()
     }
 
@@ -51,14 +49,6 @@ export class DataSync implements IJSONSerializable, IJSONDeserializable<DataSync
         this._weights = value
     }
 
-    get timeseries(): TimeSeriesSync {
-        return this._timeseries
-    }
-
-    set timeseries(value: TimeSeriesSync) {
-        this._timeseries = value
-    }
-
     get intraday(): TimeSeriesSync {
         return this._intraday
     }
@@ -76,7 +66,6 @@ export class DataSync implements IJSONSerializable, IJSONDeserializable<DataSync
         if (json.activities !== undefined) this.activities = json.activities
         if (json.sleep !== undefined) this.sleep = json.sleep
         if (json.weights !== undefined) this.weights = json.weights
-        if (json.timeseries !== undefined) this.timeseries = new TimeSeriesSync().fromJSON(json.timeseries)
         if (json.intraday !== undefined) this.intraday = new TimeSeriesSync().fromJSON(json.intraday)
 
         return this
@@ -87,7 +76,6 @@ export class DataSync implements IJSONSerializable, IJSONDeserializable<DataSync
             activities: this.activities,
             sleep: this.sleep,
             weights: this.weights,
-            timeseries: this.timeseries ? this.timeseries.toJSON() : undefined,
             intraday: this.intraday ? this.intraday.toJSON() : undefined
         }
     }
