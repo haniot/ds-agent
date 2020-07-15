@@ -1,40 +1,38 @@
-import { inject, injectable } from 'inversify'
-import { Identifier } from '../../di/identifiers'
-import { ILogger } from '../../utils/custom.logger'
-import { IEntityMapper } from '../port/entity.mapper.interface'
-import { FitbitAuthData } from '../../application/domain/model/fitbit.auth.data'
-import { OAuthException } from '../../application/domain/exception/oauth.exception'
+import {inject, injectable} from 'inversify'
+import {Identifier} from '../../di/identifiers'
+import {ILogger} from '../../utils/custom.logger'
+import {IEntityMapper} from '../port/entity.mapper.interface'
+import {FitbitAuthData} from '../../application/domain/model/fitbit.auth.data'
+import {OAuthException} from '../../application/domain/exception/oauth.exception'
 import moment from 'moment'
 import jwt from 'jsonwebtoken'
-import { PhysicalActivity } from '../../application/domain/model/physical.activity'
-import { Sleep } from '../../application/domain/model/sleep'
-import { Weight } from '../../application/domain/model/weight'
-import { IFitbitDataRepository } from '../../application/port/fitbit.auth.data.repository.interface'
-import { FitbitAuthDataEntity } from '../entity/fitbit.auth.data.entity'
-import { IFitbitClientRepository } from '../../application/port/fitbit.client.repository.interface'
-import { ValidationException } from '../../application/domain/exception/validation.exception'
-import { ConflictException } from '../../application/domain/exception/conflict.exception'
-import { RepositoryException } from '../../application/domain/exception/repository.exception'
-import { ResourceDataType } from '../../application/domain/utils/resource.data.type'
-import { IResourceRepository } from '../../application/port/resource.repository.interface'
-import { Query } from './query/query'
-import { Resource } from '../../application/domain/model/resource'
-import { DataSync } from '../../application/domain/model/data.sync'
-import { UserAuthData } from '../../application/domain/model/user.auth.data'
-import { UserAuthDataEntity } from '../entity/user.auth.data.entity'
-import { FitbitClientException } from '../../application/domain/exception/fitbit.client.exception'
-import { IEventBus } from '../port/event.bus.interface'
-import { WeightSyncEvent } from '../../application/integration-event/event/weight.sync.event'
-import { SleepSyncEvent } from '../../application/integration-event/event/sleep.sync.event'
-import { PhysicalActivitySyncEvent } from '../../application/integration-event/event/physical.activity.sync.event'
-import { FitbitLastSyncEvent } from '../../application/integration-event/event/fitbit.last.sync.event'
-import { UserTimeSeries } from '../../application/domain/model/user.time.series'
-import { UserIntradayTimeSeries } from '../../application/domain/model/user.intraday.time.series'
-import { SleepEntity } from '../entity/sleep.entity'
-import { WeightEntity } from '../entity/weight.entity'
-import { TimeSeriesSyncEvent } from '../../application/integration-event/event/time.series.sync.event'
-import { IntradayTimeSeriesSyncEvent } from '../../application/integration-event/event/intraday.time.series.sync.event'
-import { TimeSeriesSync } from '../../application/domain/model/time.series.sync'
+import {PhysicalActivity} from '../../application/domain/model/physical.activity'
+import {Sleep} from '../../application/domain/model/sleep'
+import {Weight} from '../../application/domain/model/weight'
+import {IFitbitDataRepository} from '../../application/port/fitbit.auth.data.repository.interface'
+import {FitbitAuthDataEntity} from '../entity/fitbit.auth.data.entity'
+import {IFitbitClientRepository} from '../../application/port/fitbit.client.repository.interface'
+import {ValidationException} from '../../application/domain/exception/validation.exception'
+import {ConflictException} from '../../application/domain/exception/conflict.exception'
+import {RepositoryException} from '../../application/domain/exception/repository.exception'
+import {ResourceDataType} from '../../application/domain/utils/resource.data.type'
+import {IResourceRepository} from '../../application/port/resource.repository.interface'
+import {Query} from './query/query'
+import {Resource} from '../../application/domain/model/resource'
+import {DataSync} from '../../application/domain/model/data.sync'
+import {UserAuthData} from '../../application/domain/model/user.auth.data'
+import {UserAuthDataEntity} from '../entity/user.auth.data.entity'
+import {FitbitClientException} from '../../application/domain/exception/fitbit.client.exception'
+import {IEventBus} from '../port/event.bus.interface'
+import {WeightSyncEvent} from '../../application/integration-event/event/weight.sync.event'
+import {SleepSyncEvent} from '../../application/integration-event/event/sleep.sync.event'
+import {PhysicalActivitySyncEvent} from '../../application/integration-event/event/physical.activity.sync.event'
+import {FitbitLastSyncEvent} from '../../application/integration-event/event/fitbit.last.sync.event'
+import {UserIntradayTimeSeries} from '../../application/domain/model/user.intraday.time.series'
+import {SleepEntity} from '../entity/sleep.entity'
+import {WeightEntity} from '../entity/weight.entity'
+import {IntradayTimeSeriesSyncEvent} from '../../application/integration-event/event/intraday.time.series.sync.event'
+import {TimeSeriesSync} from '../../application/domain/model/time.series.sync'
 
 @injectable()
 export class FitbitDataRepository implements IFitbitDataRepository {
@@ -58,7 +56,7 @@ export class FitbitDataRepository implements IFitbitDataRepository {
     public removeFitbitAuthData(userId: string): Promise<boolean> {
         return new Promise<boolean>((resolve, reject) => {
             this._userAuthRepoModel
-                .updateOne({ user_id: userId }, { $unset: { fitbitu: '' } })
+                .updateOne({user_id: userId}, {$unset: {fitbitu: ''}})
                 .then(res => resolve(!!res))
                 .catch(err => reject(this.mongoDBErrorListener(err)))
         })
@@ -115,11 +113,6 @@ export class FitbitDataRepository implements IFitbitDataRepository {
                     let qty_pub_activities: number = 0 // Quantity of published activities
                     let qty_pub_weights: number = 0 // Quantity of published weights
                     let qty_pub_sleep: number = 0 // Quantity of published sleeps
-                    let qty_pub_ts_steps: number = 0 // Quantity of published tiimeseries steps
-                    let qty_pub_ts_calories: number = 0  // Quantity of published timeseries calories
-                    let qty_pub_ts_distance: number = 0  // Quantity of published timeseries distance
-                    let qty_pub_ts_heart_rate: number = 0  // Quantity of published timeseries heart rate
-                    let qty_pub_ts_active_min: number = 0  // Quantity of published timeseries active minutes
                     let qty_pub_id_steps: number = 0  // Quantity of published IntradayTimeseries steps
                     let qty_pub_id_calories: number = 0  // Quantity of published intraday timeseries calories
                     let qty_pub_id_distance: number = 0  // Quantity of published intraday timeseries distance
@@ -132,12 +125,6 @@ export class FitbitDataRepository implements IFitbitDataRepository {
                     let syncSleep: Array<any> = []
                     let syncActivities: Array<any> = []
 
-                    let stepsTimeSeries: any
-                    let distanceTimeSeries: any
-                    let caloriesTimeSeries: any
-                    let minutesFairlyActiveTimeSeries: any
-                    let minutesVeryActiveTimeSeries: any
-                    let heartRateTimeSeries: any
                     let stepsIntradayTimeSeries: any
                     let distanceIntradayTimeSeries: any
                     let caloriesIntradayTimeSeries: any
@@ -149,53 +136,28 @@ export class FitbitDataRepository implements IFitbitDataRepository {
                     if (scopes.includes('rsle')) syncSleep = await this.syncSleepData(data)
                     if (scopes.includes('ract')) {
                         const before_date: string = moment().format('YYYY-MM-DD')
-                        const after_date: string =
-                            moment(before_date).subtract(1, 'year').format('YYYY-MM-DD')
                         // Get Activities
                         promises.push(this.syncUserActivities(data))
 
-                        const before_intraday: string = moment(before_date).subtract(2, 'day').format('YYYY-MM-DD')
-
-                        // Get Time Series
-                        promises.push(this.getTimeSeries(data.access_token!, 'steps', before_intraday, after_date))
-                        promises.push(this.getTimeSeries(data.access_token!, 'distance', before_intraday, after_date))
-                        promises.push(this.getTimeSeries(data.access_token!, 'calories', before_intraday, after_date))
-                        promises.push(this.getTimeSeries(data.access_token!, 'minutesFairlyActive', before_intraday, after_date))
-                        promises.push(this.getTimeSeries(data.access_token!, 'minutesVeryActive', before_intraday, after_date))
-                        promises.push(this.getHeartRateTimeSeries(data.access_token!, before_intraday, after_date))
-
                         // Get Intraday Time Series
-                        promises.push(this.getMultipleIntradayTimeSeries(data.access_token!, 'calories', before_date, 1))
+                        promises.push(this.getMultipleIntradayTimeSeries(data.access_token!, 'calories', before_date, 6))
                         heartRateIntradayTimeSeries =
-                            await this.getMultipleHeartRateIntradayTimeSeries(data.access_token!, before_date, '1sec', 1)
-                        promises.push(this.getMultipleIntradayTimeSeries(data.access_token!, 'steps', before_date, 1))
-                        promises.push(this.getMultipleIntradayTimeSeries(data.access_token!, 'distance', before_date, 1))
+                            await this.getMultipleHeartRateIntradayTimeSeries(data.access_token!, before_date, '1sec', 6)
+                        promises.push(this.getMultipleIntradayTimeSeries(data.access_token!, 'steps', before_date, 6))
+                        promises.push(this.getMultipleIntradayTimeSeries(data.access_token!, 'distance', before_date, 6))
                         promises.push(
-                            this.getMultipleIntradayTimeSeries(data.access_token!, 'minutesFairlyActive', before_date, 1))
+                            this.getMultipleIntradayTimeSeries(data.access_token!, 'minutesFairlyActive', before_date, 6))
                         promises.push(
-                            this.getMultipleIntradayTimeSeries(data.access_token!, 'minutesVeryActive', before_date, 1))
+                            this.getMultipleIntradayTimeSeries(data.access_token!, 'minutesVeryActive', before_date, 6))
 
                         const result = await Promise.all(promises)
                         syncActivities = result[0] || []
-                        stepsTimeSeries = result[1] || undefined
-                        distanceTimeSeries = result[2] || undefined
-                        caloriesTimeSeries = result[3] || undefined
-                        minutesFairlyActiveTimeSeries = result[4] || undefined
-                        minutesVeryActiveTimeSeries = result[5] || undefined
-                        heartRateTimeSeries = result[6] || undefined
-                        caloriesIntradayTimeSeries = result[7] || undefined
-                        stepsIntradayTimeSeries = result[8] || undefined
-                        distanceIntradayTimeSeries = result[9] || undefined
-                        minutesFairlyActiveIntradayTimeSeries = result[10] || undefined
-                        minutesVeryActiveIntradayTimeSeries = result[11] || undefined
+                        caloriesIntradayTimeSeries = result[1] || undefined
+                        stepsIntradayTimeSeries = result[2] || undefined
+                        distanceIntradayTimeSeries = result[3] || undefined
+                        minutesFairlyActiveIntradayTimeSeries = result[4] || undefined
+                        minutesVeryActiveIntradayTimeSeries = result[5] || undefined
                     }
-
-                    const minutesActiveTimeSerie: any =
-                        this.mergeTimeSeriesValues(
-                            minutesFairlyActiveTimeSeries['activities-minutesFairlyActive'] ?
-                                minutesFairlyActiveTimeSeries['activities-minutesFairlyActive'] : [],
-                            minutesVeryActiveTimeSeries['activities-minutesVeryActive'] ?
-                                minutesVeryActiveTimeSeries['activities-minutesVeryActive'] : [])
 
                     // Filter list of data for does not sync data that was saved
                     const weights: Array<any> = await this.filterDataAlreadySync(syncWeights, ResourceDataType.BODY, userId)
@@ -329,23 +291,6 @@ export class FitbitDataRepository implements IFitbitDataRepository {
                     const activitiesList: Array<PhysicalActivity> = await this.parsePhysicalActivityList(activities, userId)
                     const sleepList: Array<Sleep> = await this.parseSleepList(sleep, userId)
 
-                    // Parse Sync Time Series
-                    const stepsSeries: UserTimeSeries =
-                        this.parseTimeSeriesResources(userId, 'steps', stepsTimeSeries['activities-steps'])
-                    const distanceSeries: UserTimeSeries =
-                        this.parseTimeSeriesResources(userId, 'distance', distanceTimeSeries['activities-distance'])
-                    const caloriesSeries: UserTimeSeries =
-                        this.parseTimeSeriesResources(userId, 'calories', caloriesTimeSeries['activities-calories'])
-                    const minutesActiveSeries: UserTimeSeries =
-                        this.parseTimeSeriesResources(userId,
-                            'active_minutes',
-                            minutesActiveTimeSerie && minutesActiveTimeSerie['activities-minutes-active'] ?
-                                minutesActiveTimeSerie['activities-minutes-active'] : [])
-                    const heartRateSeries: UserTimeSeries =
-                        this.parseTimeSeriesHeartRate(userId,
-                            heartRateTimeSeries && heartRateTimeSeries['activities-heart'] ?
-                                heartRateTimeSeries['activities-heart'] : [])
-
                     // Publish Sync Data
                     if (activitiesList.length) {
                         qty_pub_activities = activitiesList.length
@@ -373,41 +318,6 @@ export class FitbitDataRepository implements IFitbitDataRepository {
                     this.manageResources(syncWeights, userId, ResourceDataType.BODY)
                     this.manageResources(syncSleep, userId, ResourceDataType.SLEEP)
 
-                    if (stepsSeries && stepsSeries.data_set) {
-                        qty_pub_ts_steps = stepsSeries.data_set.length
-                        this._eventBus
-                            .publish(new TimeSeriesSyncEvent(new Date(), userId, stepsSeries), 'timeseries.sync')
-                            .then(() => this._logger.info(`Step time series from ${userId} successful published!`))
-                            .catch(err => this._logger.error(`Error publishing step time series: ${err.message}`))
-                    }
-                    if (caloriesSeries && caloriesSeries.data_set) {
-                        qty_pub_ts_calories = caloriesSeries.data_set.length
-                        this._eventBus
-                            .publish(new TimeSeriesSyncEvent(new Date(), userId, caloriesSeries), 'timeseries.sync')
-                            .then(() => this._logger.info(`Calories time series from ${userId} successful published!`))
-                            .catch(err => this._logger.error(`Error publishing calories time series: ${err.message}`))
-                    }
-                    if (distanceSeries && distanceSeries.data_set) {
-                        qty_pub_ts_distance = distanceSeries.data_set.length
-                        this._eventBus
-                            .publish(new TimeSeriesSyncEvent(new Date(), userId, distanceSeries), 'timeseries.sync')
-                            .then(() => this._logger.info(`Distance time series from ${userId} successful published!`))
-                            .catch(err => this._logger.error(`Error publishing distance time series: ${err.message}`))
-                    }
-                    if (minutesActiveSeries && minutesActiveSeries.data_set) {
-                        qty_pub_ts_active_min = minutesActiveSeries.data_set.length
-                        this._eventBus
-                            .publish(new TimeSeriesSyncEvent(new Date(), userId, minutesActiveSeries), 'timeseries.sync')
-                            .then(() => this._logger.info(`Minutes active time series from ${userId} successful published!`))
-                            .catch(err => this._logger.error(`Error publishing minutes active time series: ${err.message}`))
-                    }
-                    if (heartRateSeries && heartRateSeries.data_set) {
-                        qty_pub_ts_heart_rate = heartRateSeries.data_set.length
-                        this._eventBus
-                            .publish(new TimeSeriesSyncEvent(new Date(), userId, heartRateSeries), 'timeseries.sync')
-                            .then(() => this._logger.info(`Heartrate time series from ${userId} successful published!`))
-                            .catch(err => this._logger.error(`Error publish heartrate time series: ${err.message}`))
-                    }
                     // Finally, the last sync variable from user needs to be updated
                     const lastSync = moment.utc().format()
                     this.updateLastSync(userId, lastSync)
@@ -421,13 +331,6 @@ export class FitbitDataRepository implements IFitbitDataRepository {
                     dataSync.activities = qty_pub_activities
                     dataSync.weights = qty_pub_weights
                     dataSync.sleep = qty_pub_sleep
-                    dataSync.timeseries = new TimeSeriesSync().fromJSON({
-                        steps: qty_pub_ts_steps,
-                        calories: qty_pub_ts_calories,
-                        distance: qty_pub_ts_distance,
-                        heart_rate: qty_pub_ts_heart_rate,
-                        active_minutes: qty_pub_ts_active_min
-                    })
                     dataSync.intraday = new TimeSeriesSync().fromJSON({
                         steps: qty_pub_id_steps,
                         calories: qty_pub_id_calories,
@@ -447,9 +350,9 @@ export class FitbitDataRepository implements IFitbitDataRepository {
     public updateLastSync(userId: string, lastSync: string): Promise<boolean> {
         return new Promise<boolean>((resolve, reject) => {
             this._userAuthRepoModel.findOneAndUpdate(
-                { user_id: userId },
-                { 'fitbit.last_sync': lastSync },
-                { new: true })
+                {user_id: userId},
+                {'fitbit.last_sync': lastSync},
+                {new: true})
                 .then(res => resolve(!!res))
                 .catch(err => reject(this.mongoDBErrorListener(err)))
         })
@@ -478,9 +381,9 @@ export class FitbitDataRepository implements IFitbitDataRepository {
         const itemUp: any = this._fitbitAuthEntityMapper.transform(token)
         return new Promise<UserAuthData>((resolve, reject) => {
             this._userAuthRepoModel.findOneAndUpdate(
-                { user_id: userId },
-                { fitbit: itemUp },
-                { new: true })
+                {user_id: userId},
+                {fitbit: itemUp},
+                {new: true})
                 .then(res => {
                     if (!res) return resolve(undefined)
                     return resolve(this._userAuthDataEntityMapper.transform(res))
@@ -499,7 +402,7 @@ export class FitbitDataRepository implements IFitbitDataRepository {
                         'user_id': userId
                     }
                 })
-                if (type === ResourceDataType.BODY) query.addFilter({ 'resource.weight': item.weight })
+                if (type === ResourceDataType.BODY) query.addFilter({'resource.weight': item.weight})
                 const exists: boolean = await this._resourceRepo.checkExists(query)
                 if (!exists) resources.push(item)
             }
@@ -512,7 +415,7 @@ export class FitbitDataRepository implements IFitbitDataRepository {
     private cleanResourceList(userId, type): Promise<boolean> {
         return new Promise<boolean>((resolve, reject) => {
             this._resourceRepo
-                .deleteByQuery(new Query().fromJSON({ filters: { user_id: userId, type } }))
+                .deleteByQuery(new Query().fromJSON({filters: {user_id: userId, type}}))
                 .then(res => resolve(!!res))
                 .catch(err => reject(this.mongoDBErrorListener(err)))
         })
@@ -550,58 +453,23 @@ export class FitbitDataRepository implements IFitbitDataRepository {
     }
 
     public syncWeightData(data: FitbitAuthData): Promise<Array<any>> {
-        return new Promise<Array<any>>(async (resolve, reject) => {
-            try {
-                if (data.last_sync) {
-                    return resolve(this.getUserBodyDataFromInterval(
-                        data.access_token!,
-                        moment().subtract(1, 'month').format('YYYY-MM-DD'),
-                        moment().format('YYYY-MM-DD')))
-                }
-                const result: Array<any> = new Array<any>()
-                result.push(
-                    this.getUserBodyDataFromInterval(
-                        data.access_token!,
-                        moment().subtract(1, 'month').format('YYYY-MM-DD'),
-                        moment().format('YYYY-MM-DD'))
-                )
-                for (let i = 1; i < 12; i++) {
-                    result.push(
-                        this.getUserBodyDataFromInterval(
-                            data.access_token!,
-                            moment().subtract(i + 1, 'month').format('YYYY-MM-DD'),
-                            moment().subtract(i, 'month').format('YYYY-MM-DD'))
-                    )
-                }
-                return resolve((await Promise.all(result)).reduce((prev, current) => prev.concat(current), []))
-            } catch (err) {
-                return reject(err)
-            }
-        })
+        return this.getLastUserWeight(data.access_token!)
     }
 
     public async syncSleepData(data: FitbitAuthData): Promise<Array<any>> {
-        return new Promise<Array<any>>(async (resolve, reject) => {
-            try {
-                return resolve(await this.getUserSleepBefore(
-                    data.access_token!,
-                    100,
-                    moment().add(1, 'day').format('YYYY-MM-DD')))
-            } catch (err) {
-                return reject(err)
-            }
-        })
+        return this.getUserSleepBefore(data.access_token!, 100, moment().add(1, 'day').format('YYYY-MM-DD'))
     }
 
     public syncUserActivities(data: FitbitAuthData): Promise<Array<any>> {
         return this.getLastUserActivities(data.access_token!)
     }
 
-    private async getUserBodyDataFromInterval(token: string, baseDate: string, endDate: string): Promise<any> {
+    private async getLastUserWeight(token: string): Promise<any> {
+        const now: string = moment().add(1, 'day').format('YYYY-MM-DD')
+        const path: string = `/body/log/weight/date/${now}/1m.json`
         return new Promise<any>((resolve, reject) => {
-            this._fitbitClientRepo
-                .getDataFromPath(`/body/log/weight/date/${baseDate}/${endDate}.json`, token)
-                .then(result => resolve(result.weight))
+            this._fitbitClientRepo.getDataFromPath(path, token)
+                .then(result => resolve(result.activities))
                 .catch(err => reject(this.fitbitClientErrorListener(err, token)))
         })
     }
@@ -631,7 +499,7 @@ export class FitbitDataRepository implements IFitbitDataRepository {
                 const result: Array<any> = new Array<any>()
                 for (let i = 0; i <= days; i++) {
                     const date: string = moment(baseDate).subtract(i, 'day').format('YYYY-MM-DD')
-                    result.push(this.getTimeSeries(token, resource, date, date))
+                    result.push(this.getIntradayTimeSeries(token, resource, date))
                 }
                 return resolve((await Promise.all(result)).reduce((prev, current) => prev.concat(current), []))
             } catch (err) {
@@ -640,8 +508,8 @@ export class FitbitDataRepository implements IFitbitDataRepository {
         })
     }
 
-    private getTimeSeries(token: string, resource: string, baseDate: string, endDate: string): Promise<any> {
-        const path: string = `/activities/${resource}/date/${baseDate}/${endDate}.json`
+    private getIntradayTimeSeries(token: string, resource: string, date: string): Promise<any> {
+        const path: string = `/activities/${resource}/date/${date}/${date}.json`
         return new Promise<any>((resolve, reject) => {
             this._fitbitClientRepo.getDataFromPath(path, token)
                 .then(result => resolve(result))
@@ -674,20 +542,17 @@ export class FitbitDataRepository implements IFitbitDataRepository {
         })
     }
 
-    private getHeartRateTimeSeries(token: string, baseDate: string, endDate: string): Promise<any> {
-        const path: string = `/activities/heart/date/${baseDate}/${endDate}.json`
-        return new Promise<any>((resolve, reject) => {
-            this._fitbitClientRepo.getDataFromPath(path, token)
-                .then(result => resolve(result))
-                .catch(err => reject(this.fitbitClientErrorListener(err, token)))
-        })
-    }
-
     // Parsers
     private parseIntradayTimeSeriesResources(userId: string, resource: string, dataset: any): UserIntradayTimeSeries {
         const intraday_data: any = dataset[`activities-${resource}-intraday`]
         const date: string = dataset[`activities-${resource}`][0].dateTime
-        const dataset_intraday: Array<any> = intraday_data.dataset
+        let dataset_intraday: Array<any> = intraday_data.dataset
+        if (resource === 'distance') {
+            dataset_intraday = dataset_intraday.map(item => {
+                item.value = Math.round(Number.parseFloat(item.value) * 1000)
+                return item
+            })
+        }
         return new UserIntradayTimeSeries().fromJSON({
             patient_id: userId,
             start_time: dataset_intraday.length ?
@@ -749,89 +614,19 @@ export class FitbitDataRepository implements IFitbitDataRepository {
         })
     }
 
-    private parseTimeSeriesResources(userId: string, resource: string, dataset: Array<any>): UserTimeSeries {
-        if (!dataset || !dataset.length) return undefined!
-        return new UserTimeSeries().fromJSON({
-            patient_id: userId,
-            type: resource,
-            data_set: dataset.map(item => {
-                return {
-                    date: item.dateTime,
-                    value: parseFloat(item.value)
-                }
-            })
-        })
-    }
-
-    private parseTimeSeriesHeartRate(userId: string, dataset: Array<any>): UserTimeSeries {
-        return new UserTimeSeries().fromJSON({
-            patient_id: userId,
-            type: 'heart_rate',
-            data_set: dataset.map(item => {
-                const fat_burn = item.value.heartRateZones.filter(value => value.name === 'Fat Burn')[0]
-                const cardio = item.value.heartRateZones.filter(value => value.name === 'Cardio')[0]
-                const peak = item.value.heartRateZones.filter(value => value.name === 'Peak')[0]
-                const out_of_range = item.value.heartRateZones.filter(value => value.name === 'Out of Range')[0]
-                return {
-                    date: item.dateTime,
-                    zones: {
-                        fat_burn: {
-                            min: fat_burn.min,
-                            max: fat_burn.max,
-                            duration: fat_burn.minutes * 60000 || 0,
-                            calories: fat_burn.caloriesOut || 0
-                        },
-                        cardio: {
-                            min: cardio.min,
-                            max: cardio.max,
-                            duration: cardio.minutes * 60000 || 0,
-                            calories: cardio.caloriesOut || 0
-                        },
-                        peak: {
-                            min: peak.min,
-                            max: peak.max,
-                            duration: peak.minutes * 60000 || 0,
-                            calories: peak.caloriesOut || 0
-                        },
-                        out_of_range: {
-                            min: out_of_range.min,
-                            max: out_of_range.max,
-                            duration: out_of_range.minutes * 60000 || 0,
-                            calories: out_of_range.caloriesOut || 0
-                        }
-                    }
-                }
-            })
-        })
-    }
-
     private parseWeightList(weights: Array<any>, userId: string): Array<Weight> {
         if (!weights || !weights.length) return []
-        return weights.map(item => this._weightMapper.transform({ ...item, patient_id: userId }))
+        return weights.map(item => this._weightMapper.transform({...item, patient_id: userId}))
     }
 
     private parsePhysicalActivityList(activities: Array<any>, userId: string): Array<PhysicalActivity> {
         if (!activities || !activities.length) return []
-        return activities.map(item => this._activityMapper.transform({ ...item, patient_id: userId }))
+        return activities.map(item => this._activityMapper.transform({...item, patient_id: userId}))
     }
 
     private parseSleepList(sleep: Array<any>, userId: string): Array<Sleep> {
         if (!sleep || !sleep.length) return []
-        return sleep.map(item => this._sleepMapper.transform({ ...item, patient_id: userId }))
-    }
-
-    private mergeTimeSeriesValues(intradayOne: Array<any>, intradayTwo: Array<any>): any {
-        const result: any = { 'activities-minutes-active': [] }
-        if (!intradayOne || !intradayOne.length || !intradayTwo || !intradayTwo.length) return result
-        for (let i = 0; i < intradayOne.length; i++) {
-            if (intradayOne[i].dateTime === intradayTwo[i].dateTime) {
-                result['activities-minutes-active'].push({
-                    dateTime: intradayOne[i].dateTime,
-                    value: `${parseInt(intradayOne[i].value, 10) + parseInt(intradayTwo[i].value, 10)}`
-                })
-            }
-        }
-        return result
+        return sleep.map(item => this._sleepMapper.transform({...item, patient_id: userId}))
     }
 
     private mergeIntradayTimeSeriesValues(intradayOne: any, intradayTwo: any): any {
@@ -865,9 +660,9 @@ export class FitbitDataRepository implements IFitbitDataRepository {
     public updateTokenStatus(userId: string, status: string): Promise<boolean> {
         return new Promise<boolean>((resolve, reject) => {
             this._userAuthRepoModel.findOneAndUpdate(
-                { user_id: userId },
-                { 'fitbit.status': status },
-                { new: true })
+                {user_id: userId},
+                {'fitbit.status': status},
+                {new: true})
                 .then(res => resolve(!!res))
                 .catch(err => reject(this.mongoDBErrorListener(err)))
         })
