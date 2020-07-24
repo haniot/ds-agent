@@ -17,7 +17,6 @@ import { IEventBus } from '../../infrastructure/port/event.bus.interface'
 import { FitbitErrorEvent } from '../integration-event/event/fitbit.error.event'
 import { FitbitRevokeEvent } from '../integration-event/event/fitbit.revoke.event'
 import { FitbitLastSyncEvent } from '../integration-event/event/fitbit.last.sync.event'
-import moment from 'moment'
 
 @injectable()
 export class UserAuthDataService implements IUserAuthDataService {
@@ -138,11 +137,7 @@ export class UserAuthDataService implements IUserAuthDataService {
     private async syncFitbitData(data: FitbitAuthData, userId: string): Promise<DataSync> {
         try {
             VerifyFitbitAuthValidator.validate(data)
-            const before: Date = new Date()
-            const result: DataSync = await this._fitbitAuthDataRepo.syncFitbitData(data, userId)
-            const after: Date = new Date()
-            console.log('The time of sync is', moment(after).diff(before, 'ms'), 'milliseconds.')
-            return Promise.resolve(result)
+            return this._fitbitAuthDataRepo.syncFitbitData(data, userId)
         } catch (err) {
             return Promise.reject(err)
         }
