@@ -62,8 +62,8 @@ export class UserFitbitAuthController {
                 return res.status(HttpStatus.NOT_FOUND).send(
                     new ApiException(
                         HttpStatus.NOT_FOUND,
-                        Strings.FITBIT.AUTH_NOT_FOUND,
-                        Strings.FITBIT.AUTH_NOT_FOUND_DESCRIPTION
+                        Strings.FITBIT_ERROR.AUTH_NOT_FOUND,
+                        Strings.FITBIT_ERROR.AUTH_NOT_FOUND_DESCRIPTION
                     ).toJson()
                 )
             }
