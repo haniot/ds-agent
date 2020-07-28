@@ -3,7 +3,7 @@ import { ActivityLevelType } from '../../../src/application/domain/model/physica
 import { SleepType } from '../../../src/application/domain/model/sleep'
 import moment from 'moment'
 import { TokenManager } from '../utils/token.manager'
-import { ResourceDataType } from '../../../src/application/domain/utils/resource.data.type'
+import { ResourceType } from '../../../src/application/domain/utils/resource.type'
 
 export abstract class DefaultEntityMock {
     public static ACTIVITY: any = {
@@ -166,7 +166,7 @@ export abstract class DefaultEntityMock {
 
     public static RESOURCE: any = {
         id: '5d7a9fc8d3f5bbb30e0d6a1e',
-        type: ResourceDataType.ACTIVITIES,
+        type: ResourceType.ACTIVITIES,
         resource: { logId: '171847684' },
         date_sync: '2019-09-12T13:36:49.741Z',
         user_id: '5d7a4a95c292db05e4f765a8',
@@ -255,13 +255,6 @@ export abstract class DefaultEntityMock {
         sleep: 1,
         weights: 1,
         intraday: {
-            active_minutes: [undefined],
-            calories: [undefined],
-            distance: [undefined],
-            heart_rate: [undefined],
-            steps: [undefined]
-        },
-        timeseries: {
             active_minutes: [undefined],
             calories: [undefined],
             distance: [undefined],

@@ -1,13 +1,13 @@
 import HttpStatus from 'http-status-codes'
-import { controller, httpGet, httpPost, request, response } from 'inversify-express-utils'
-import { Request, Response } from 'express'
-import { ApiExceptionManager } from '../exception/api.exception.manager'
-import { inject } from 'inversify'
-import { Identifier } from '../../di/identifiers'
-import { IUserAuthDataService } from '../../application/port/user.auth.data.service.interface'
-import { UserAuthData } from '../../application/domain/model/user.auth.data'
-import { ApiException } from '../exception/api.exception'
-import { Strings } from '../../utils/strings'
+import {controller, httpGet, httpPost, request, response} from 'inversify-express-utils'
+import {Request, Response} from 'express'
+import {ApiExceptionManager} from '../exception/api.exception.manager'
+import {inject} from 'inversify'
+import {Identifier} from '../../di/identifiers'
+import {IUserAuthDataService} from '../../application/port/user.auth.data.service.interface'
+import {UserAuthData} from '../../application/domain/model/user.auth.data'
+import {ApiException} from '../exception/api.exception'
+import {Strings} from '../../utils/strings'
 
 /**
  * Controller that implements User Fitbit Auth feature operations.
@@ -30,13 +30,15 @@ export class UserFitbitAuthController {
      */
     @httpPost('/')
     public async saveAuthData(@request() req: Request, @response() res: Response): Promise<Response> {
+        const filters: any = req.query.filters
         try {
             const userAuth: UserAuthData = new UserAuthData().fromJSON({
                 user_id: req.params.user_id,
                 fitbit: {
                     access_token: req.body.access_token,
                     refresh_token: req.body.refresh_token,
-                    token_type: 'Bearer'
+                    token_type: 'Bearer',
+                    last_sync: filters.last_sync
                 }
             })
             await this._userAuthDataService.add(userAuth)
@@ -60,8 +62,8 @@ export class UserFitbitAuthController {
                 return res.status(HttpStatus.NOT_FOUND).send(
                     new ApiException(
                         HttpStatus.NOT_FOUND,
-                        Strings.FITBIT.AUTH_NOT_FOUND,
-                        Strings.FITBIT.AUTH_NOT_FOUND_DESCRIPTION
+                        Strings.FITBIT_ERROR.AUTH_NOT_FOUND,
+                        Strings.FITBIT_ERROR.AUTH_NOT_FOUND_DESCRIPTION
                     ).toJSON()
                 )
             }
