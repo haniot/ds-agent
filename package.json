@@ -1,12 +1,12 @@
 {
   "name": "ds-agent",
-  "version": "1.0.6",
+  "version": "1.0.7",
   "description": "Service responsible for data synchronization of FitBit platform with HANIoT platform.",
   "main": "dist/server.js",
   "scripts": {
     "build": "gulp build",
     "build:doc": "typedoc --options typedoc.json",
-    "start": "env TZ='America/Sao_Paulo' node dist/server.js",
+    "start": "node dist/server.js",
     "start:dev": "gulp dev",
     "tslint": "tslint -c tslint.json -p tsconfig.json",
     "test": "nyc --clean --reporter=text-summary mocha test/**/*.spec.ts",
@@ -55,7 +55,7 @@
     "amqp-client-node": "^1.0.10",
     "axios": "^0.19.2",
     "body-parser": "^1.19.0",
-    "bull": "^3.14.0",
+    "bull": "^3.16.0",
     "dotenv": "^8.2.0",
     "express": "^4.17.1",
     "fitbit-node": "^2.2.0",
@@ -64,7 +64,7 @@
     "inversify-express-utils": "^6.3.2",
     "jsonwebtoken": "^8.5.1",
     "moment": "^2.27.0",
-    "mongoose": "^5.9.20",
+    "mongoose": "^5.9.26",
     "morgan": "^1.10.0",
     "node-cron": "^2.0.3",
     "query-strings-parser": "^2.1.5",
@@ -76,11 +76,11 @@
   "devDependencies": {
     "@types/body-parser": "^1.19.0",
     "@types/bull": "^3.14.0",
-    "@types/chai": "^4.2.11",
-    "@types/express": "^4.17.6",
+    "@types/chai": "^4.2.12",
+    "@types/express": "^4.17.7",
     "@types/helmet": "^0.0.47",
-    "@types/mocha": "^7.0.2",
-    "@types/mongoose": "^5.7.28",
+    "@types/mocha": "^8.0.0",
+    "@types/mongoose": "^5.7.32",
     "@types/morgan": "^1.9.1",
     "@types/swagger-ui-express": "^4.1.2",
     "chai": "^4.2.0",
@@ -96,6 +96,6 @@
     "ts-node": "^8.10.2",
     "tslint": "^6.1.2",
     "typedoc": "^0.17.8",
-    "typescript": "^3.9.5"
+    "typescript": "^3.9.7"
   }
 }

@@ -123,7 +123,7 @@ export class UserAuthDataService implements IUserAuthDataService {
         })
     }
 
-    private syncFitbitData(data: FitbitAuthData, userId: string): Promise<DataSync> {
+    private async syncFitbitData(data: FitbitAuthData, userId: string): Promise<DataSync> {
         try {
             VerifyFitbitAuthValidator.validate(data)
             return this._fitbitAuthDataRepo.syncFitbitData(data, userId)
