@@ -8,6 +8,7 @@
  * @abstract
  */
 export abstract class Default {
+    public static readonly APP_ID: string = 'ds-agent.app'
     public static readonly APP_TITLE: string = 'Data Sync Agent Service'
     public static readonly APP_DESCRIPTION: string = 'Microservice responsible for data synchronization of FitBit ' +
         'platform with HANIoT platform.'

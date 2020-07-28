@@ -1,13 +1,9 @@
 language: node_js
 node_js:
-  - "8"
-  - "9"
-  - "10"
-  - "11"
   - "12"
+  - "13"
 env:
-  - NODE_ENV=test RABBITMQ_URI=amqp://guest:guest@127.0.0.1:5672/haniot MONGODB_URI_TEST=mongodb://127.0.0.1:27017/ds-agent-test
-dist: xenial
+  - NODE_ENV=test RABBITMQ_URI=amqp://guest:guest@localhost:5672/haniot MONGODB_ENABLE_TLS=false MONGODB_URI_TEST=mongodb://localhost:27017/ds-agent-test
 addons:
   apt:
     packages:
@@ -16,9 +12,6 @@ services:
   - rabbitmq
   - mongodb
 sudo: false
-cache:
-  directories:
-    - node_modules
 before_script:
   - sudo rabbitmqctl add_vhost haniot
   - sudo rabbitmqctl set_permissions -p haniot guest ".*" ".*" ".*"
