@@ -112,11 +112,11 @@ export class SyncFitbitDataTask implements IBackgroundTask {
 
         this.syncQueue
             .on('completed', (job: Job, result: DataSync) => {
-                this._logger.debug(`Fitbit data sync job for child ${result.user_id} has been executed!`)
+                this._logger.debug(`Fitbit data sync job for patient ${result.user_id} has been executed!`)
             })
             .on('failed', (job: Job, err: Error) => {
                 this._logger.error(
-                    `An error occurred while syncing Fitbit data from child ${job.data.user_id}. ${err.message}`
+                    `An error occurred while syncing Fitbit data from patient ${job.data.user_id}. ${err.message}`
                 )
             })
             .on('drained', () => {

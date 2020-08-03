@@ -67,7 +67,7 @@ export class DataSync implements IJSONSerializable, IJSONDeserializable<DataSync
         if (json.sleep !== undefined) this.sleep = json.sleep
         if (json.weights !== undefined) this.weights = json.weights
         if (json.intraday !== undefined) this.intraday = new TimeSeriesSync().fromJSON(json.intraday)
-
+        if (json.user_id !== undefined) this.user_id = json.user_id
         return this
     }
 
@@ -76,7 +76,8 @@ export class DataSync implements IJSONSerializable, IJSONDeserializable<DataSync
             activities: this.activities,
             sleep: this.sleep,
             weights: this.weights,
-            intraday: this.intraday ? this.intraday.toJSON() : undefined
+            intraday: this.intraday ? this.intraday.toJSON() : undefined,
+            user_id: this.user_id
         }
     }
 }

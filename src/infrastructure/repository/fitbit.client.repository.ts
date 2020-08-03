@@ -54,68 +54,70 @@ export class FitbitClientRepository implements IFitbitClientRepository {
     }
 
     private fitbitAPIErrorListener(statusCode: number): any {
-        return {
+        const errors = {
             400: () => new FitbitClientException('invalid_token', Strings.FITBIT_ERROR.INVALID_ACCESS_TOKEN),
             401: () => new FitbitClientException('invalid_token', Strings.FITBIT_ERROR.INVALID_ACCESS_TOKEN),
             403: () => new FitbitClientException('invalid_token', Strings.FITBIT_ERROR.INVALID_ACCESS_TOKEN),
             429: () => new FitbitClientException('system', Strings.FITBIT_ERROR.REQUEST_LIMIT_EXCEED),
             500: () => new FitbitClientException('internal_error', Strings.FITBIT_ERROR.INTERNAL_ERROR)
-        }[statusCode]()
+        }
+        return (errors[statusCode] || errors[500])()
     }
 
     private fitbitClientErrorListener(err: any, accessToken?: string, refreshToken?: string): OAuthException |
         FitbitClientException | undefined {
         if (err.context) {
             return this.manageFitbitError({
-                type: err.context.errors[0].errorType,
-                message: err.context.errors[0].message
+                type: err.context.errors[0]?.errorType,
+                message: err.context.errors[0]?.message
             }, accessToken, refreshToken)
-        } else if (err.code === 'EAI_AGAIN') {
+        } else if (err.code && err.code === 'EAI_AGAIN') {
             return new FitbitClientException(
                 'client_error',
                 'Could not connect with the Fitbit Server',
                 'Please try again later.')
         }
-        return new OAuthException(err.errorType, err.message)
+        return new FitbitClientException('internal_error',
+            'A internal error occurs. Please, try again later.')
     }
 
     private manageFitbitError(err: any, accessToken?: string, refreshToken?: string): OAuthException |
         FitbitClientException | undefined {
-        if (err.type === 'client_error') {
-            return new FitbitClientException(
-                'client_error',
-                'Could not connect with the Fitbit Server',
-                'Please try again later.')
+        if (err.type) {
+            if (err.type === 'client_error') {
+                return new FitbitClientException(
+                    'client_error',
+                    'Could not connect with the Fitbit Server',
+                    'Please try again later.')
+            }
+            if (err.type === 'expired_token') {
+                return new FitbitClientException(
+                    'expired_token',
+                    'Access token expired.',
+                    `The access token ${accessToken} has been expired and needs to be refreshed.`)
+            } else if (err.type === 'invalid_token') {
+                return new FitbitClientException(
+                    'invalid_token',
+                    'Access token invalid.',
+                    `The access token ${accessToken} is invalid. Please make a new Fitbit Auth Data request and try again.`)
+            } else if (err.type === 'invalid_grant') {
+                return new FitbitClientException(
+                    'invalid_grant',
+                    'Refresh token invalid.',
+                    `The refresh token ${refreshToken} is invalid. Please make a new Fitbit Auth Data request and try again.`)
+            } else if (err.type === 'system') {
+                return new FitbitClientException(
+                    'system',
+                    `Data request limit for access token ${accessToken} has expired.`,
+                    'Please wait a minimum of one hour and try make the operation again.')
+            } else if (err.type === 'invalid_client') {
+                return new FitbitClientException(
+                    'invalid_client',
+                    'Invalid Fitbit Client data.',
+                    'The Fitbit Client credentials are invalid. The operation cannot be performed.')
+            }
         }
-        if (err.type === 'expired_token') {
-            return new FitbitClientException(
-                'expired_token',
-                'Access token expired.',
-                `The access token ${accessToken} has been expired and needs to be refreshed.`)
-        } else if (err.type === 'invalid_token') {
-            return new FitbitClientException(
-                'invalid_token',
-                'Access token invalid.',
-                `The access token ${accessToken} is invalid. Please make a new Fitbit Auth Data request and try again.`)
-        } else if (err.type === 'invalid_grant') {
-            return new FitbitClientException(
-                'invalid_grant',
-                'Refresh token invalid.',
-                `The refresh token ${refreshToken} is invalid. Please make a new Fitbit Auth Data request and try again.`)
-        } else if (err.type === 'system') {
-            return new FitbitClientException(
-                'system',
-                `Data request limit for access token ${accessToken} has expired.`,
-                'Please wait a minimum of one hour and try make the operation again.')
-        } else if (err.type === 'invalid_client') {
-            return new FitbitClientException(
-                'invalid_client',
-                'Invalid Fitbit Client data.',
-                'The Fitbit Client credentials are invalid. The operation cannot be performed.')
-        } else if (err.type === 'internal_error') {
-            return new FitbitClientException('internal_error', 'A internal error occurs. Please, try again later.')
-        }
-        return new FitbitClientException(err.type, err.message)
+        return new FitbitClientException('internal_error', 'A internal error occurs. Please, try again later.')
     }
 
 }
