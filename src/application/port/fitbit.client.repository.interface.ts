@@ -4,4 +4,6 @@ export interface IFitbitClientRepository {
     refreshToken(accessToken: string, refreshToken: string, expiresIn?: number): Promise<any>
 
     getDataFromPath(path: string, accessToken: string): Promise<any>
+
+    getTokenIntrospect(token: string): Promise<any>
 }

@@ -6,10 +6,6 @@ import { DefaultEntityMock } from '../models/default.entity.mock'
 const data: UserAuthData = new UserAuthData().fromJSON(DefaultEntityMock.USER_AUTH_DATA)
 
 export class UserAuthDataRepositoryMock implements IUserAuthDataRepository {
-    public checkUserExists(userId: string): Promise<boolean> {
-        return Promise.resolve(userId !== DefaultEntityMock.USER_IDS.does_not_exists)
-    }
-
     public count(query: IQuery): Promise<number> {
         return Promise.resolve(1)
     }

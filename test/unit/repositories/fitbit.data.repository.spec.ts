@@ -139,4 +139,20 @@ describe('Repositories: FitbitDataRepository', () => {
             })
         })
     })
+
+    describe('getTokenIntrospect()', () => {
+        context('when the token is active', () => {
+            it('should return a info from active token', async () => {
+                const res = await repo.getTokenIntrospect('active')
+                assert.deepPropertyVal(res, 'active', true)
+            })
+        })
+
+        context('when the token is inactive', () => {
+            it('should return a info from inactive token', async () => {
+                const res = await repo.getTokenIntrospect('inactive')
+                assert.deepPropertyVal(res, 'active', false)
+            })
+        })
+    })
 })

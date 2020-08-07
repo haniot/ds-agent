@@ -29,10 +29,6 @@ export class FitbitDataRepositoryMock implements IFitbitDataRepository {
         return Promise.resolve()
     }
 
-    public syncLastFitbitData(data: FitbitAuthData, userId: string, type: string, date: string): Promise<void> {
-        return Promise.resolve()
-    }
-
     public syncLastFitbitUserData(data: FitbitAuthData, userId: string, type: string, date: string, calls: number):
         Promise<void> {
         return Promise.resolve()
@@ -65,6 +61,10 @@ export class FitbitDataRepositoryMock implements IFitbitDataRepository {
 
     public updateTokenStatus(userId: string, status: string): Promise<boolean> {
         return Promise.resolve(true)
+    }
+
+    public getTokenIntrospect(token: string): Promise<any> {
+        return Promise.resolve({ active: true })
     }
 
 }

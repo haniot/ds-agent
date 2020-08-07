@@ -1,5 +1,4 @@
 import FitbitApiClient from 'fitbit-node'
-import { OAuthException } from '../../application/domain/exception/oauth.exception'
 import { FitbitAuthData } from '../../application/domain/model/fitbit.auth.data'
 import { injectable } from 'inversify'
 import { IFitbitClientRepository } from '../../application/port/fitbit.client.repository.interface'
@@ -14,7 +13,7 @@ export class FitbitClientRepository implements IFitbitClientRepository {
     private fitbit_api_host: string
 
     constructor() {
-        this.fitbit_api_host = 'https://api.fitbit.com/1.2/user/-'
+        this.fitbit_api_host = 'https://api.fitbit.com'
         this.fitbit_client = new FitbitApiClient({
             clientId: process.env.FITBIT_CLIENT_ID,
             clientSecret: process.env.FITBIT_CLIENT_SECRET,
@@ -38,10 +37,26 @@ export class FitbitClientRepository implements IFitbitClientRepository {
         })
     }
 
+    public getTokenIntrospect(token: string): Promise<any> {
+        return new Promise<any>((resolve, reject) => {
+            request({
+                url: `${this.fitbit_api_host}/1.1/oauth2/introspect`,
+                method: 'POST',
+                headers: { Authorization: `Bearer ${token}` },
+                form: { token },
+                json: true
+            }, (err, res, body) => {
+                if (err) return reject(this.fitbitClientErrorListener(err, token))
+                if (res.statusCode === 200) return resolve(body)
+                return reject(this.fitbitAPIErrorListener(res.statusCode, token))
+            })
+        })
+    }
+
     public getDataFromPath(path: string, accessToken: string): Promise<any> {
         return new Promise<any>((resolve, reject) => {
             request({
-                url: `${this.fitbit_api_host}${path}`,
+                url: `${this.fitbit_api_host}/1.2/user/-${path}`,
                 method: 'GET',
                 headers: { Authorization: `Bearer ${accessToken}` },
                 json: true
@@ -74,8 +89,7 @@ export class FitbitClientRepository implements IFitbitClientRepository {
         return (errors[statusCode] || errors[500])()
     }
 
-    private fitbitClientErrorListener(err: any, accessToken?: string, refreshToken?: string): OAuthException |
-        FitbitClientException | undefined {
+    private fitbitClientErrorListener(err: any, accessToken?: string, refreshToken?: string): FitbitClientException | undefined {
         if (err.context) {
             return this.manageFitbitError(
                 { type: err.context.errors[0]?.errorType, message: err.context.errors[0]?.message },
