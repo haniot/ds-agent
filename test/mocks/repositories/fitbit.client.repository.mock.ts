@@ -34,4 +34,8 @@ export class FitbitClientRepositoryMock implements IFitbitClientRepository {
         if (resource === 'error') return Promise.reject({ message: 'An error occurs!' })
         return Promise.resolve()
     }
+
+    public getTokenIntrospect(token: string): Promise<any> {
+        return Promise.resolve({ active: token === 'active' })
+    }
 }

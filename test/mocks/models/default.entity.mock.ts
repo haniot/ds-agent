@@ -260,7 +260,8 @@ export abstract class DefaultEntityMock {
             distance: [undefined],
             heart_rate: [undefined],
             steps: [undefined]
-        }
+        },
+        user_id: '5d7a4a95c292db05e4f765a8'
     }
 
     private static buildLink(type: string, patientId: string, startTime: string, endTime: string): string {

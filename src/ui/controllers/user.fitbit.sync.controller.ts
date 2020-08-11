@@ -30,8 +30,7 @@ export class UserFitbitSyncController {
     public async requestDataSync(@request() req: Request, @response() res: Response): Promise<Response> {
         try {
             const result: DataSync = await this._userAuthDataService.syncFitbitDataFromUser(req.params.user_id)
-
-            return res.status(HttpStatus.CREATED).send(result.toJSON())
+            return res.status(HttpStatus.CREATED).send(this.toJSONView(result))
         } catch (err) {
             if (err.code) {
                 let status: number = HttpStatus.INTERNAL_SERVER_ERROR
@@ -43,5 +42,10 @@ export class UserFitbitSyncController {
             const handlerError = ApiExceptionManager.build(err)
             return res.status(handlerError.code).send(handlerError.toJSON())
         }
+    }
+
+    private toJSONView(item: DataSync): object {
+        item.user_id = undefined
+        return item.toJSON()
     }
 }

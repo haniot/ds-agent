@@ -17,4 +17,6 @@ export interface IFitbitDataRepository {
     syncFitbitData(data: FitbitAuthData, userId: string): Promise<DataSync>
 
     getTokenPayload(token: string): Promise<any>
+
+    getTokenIntrospect(token: string): Promise<any>
 }
