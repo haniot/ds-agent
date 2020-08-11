@@ -1,18 +1,22 @@
 import FitbitApiClient from 'fitbit-node'
 import { FitbitAuthData } from '../../application/domain/model/fitbit.auth.data'
-import { injectable } from 'inversify'
+import { inject, injectable } from 'inversify'
 import { IFitbitClientRepository } from '../../application/port/fitbit.client.repository.interface'
 import { FitbitClientException } from '../../application/domain/exception/fitbit.client.exception'
 import request from 'request'
 import { Strings } from '../../utils/strings'
+import { Identifier } from '../../di/identifiers'
+import { ILogger } from '../../utils/custom.logger'
 
 @injectable()
 export class FitbitClientRepository implements IFitbitClientRepository {
 
     private fitbit_client: any
-    private fitbit_api_host: string
+    private readonly fitbit_api_host: string
 
-    constructor() {
+    constructor(
+        @inject(Identifier.LOGGER) private readonly _logger: ILogger
+    ) {
         this.fitbit_api_host = 'https://api.fitbit.com'
         this.fitbit_client = new FitbitApiClient({
             clientId: process.env.FITBIT_CLIENT_ID,
@@ -101,6 +105,7 @@ export class FitbitClientRepository implements IFitbitClientRepository {
                 'Could not connect with the Fitbit Server',
                 'Please try again later.')
         }
+        this._logger.error(`FitbitClient - Unknown error associated with token "${accessToken}" | ${err}`)
         return new FitbitClientException('internal_error', Strings.FITBIT_ERROR.INTERNAL_ERROR)
     }
 
