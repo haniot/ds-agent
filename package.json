@@ -1,6 +1,6 @@
 {
   "name": "ds-agent",
-  "version": "1.0.8",
+  "version": "1.0.9",
   "description": "Service responsible for data synchronization of FitBit platform with HANIoT platform.",
   "main": "dist/server.js",
   "scripts": {

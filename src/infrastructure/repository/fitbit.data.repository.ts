@@ -68,6 +68,17 @@ export class FitbitDataRepository implements IFitbitDataRepository {
         })
     }
 
+    public updateTokenStatus(userId: string, status: string): Promise<boolean> {
+        return new Promise<boolean>((resolve, reject) => {
+            this._userAuthRepoModel.findOneAndUpdate(
+                { user_id: userId },
+                { 'fitbit.status': status },
+                { new: true })
+                .then(res => resolve(!!res))
+                .catch(err => reject(this.mongoDBErrorListener(err)))
+        })
+    }
+
     public getTokenIntrospect(token: string): Promise<any> {
         return new Promise<any>((resolve, reject) => {
             this._fitbitClientRepo.getTokenIntrospect(token)
@@ -232,8 +243,7 @@ export class FitbitDataRepository implements IFitbitDataRepository {
         }
     }
 
-    /*private*/
-    public async syncAndParseSleep(scopes: Array<string>, token: string, userId: string): Promise<Array<Sleep>> {
+    private async syncAndParseSleep(scopes: Array<string>, token: string, userId: string): Promise<Array<Sleep>> {
         try {
             // If the user does not have scopes for sleep, returns an empty array
             if (!(scopes.includes('rsle'))) return Promise.resolve([])
@@ -261,8 +271,7 @@ export class FitbitDataRepository implements IFitbitDataRepository {
         }
     }
 
-    /*private*/
-    public async syncAndParseActivities(scopes: Array<string>, token: string, userId: string):
+    private async syncAndParseActivities(scopes: Array<string>, token: string, userId: string):
         Promise<Array<PhysicalActivity>> {
         try {
             // If the user does not have scopes for activity, returns an empty array
@@ -288,8 +297,7 @@ export class FitbitDataRepository implements IFitbitDataRepository {
         }
     }
 
-    /*private*/
-    public async syncAndParseIntradayTimeSeries(scopes: Array<string>, resource: string, token: string, userId: string):
+    private async syncAndParseIntradayTimeSeries(scopes: Array<string>, resource: string, token: string, userId: string):
         Promise<Array<UserIntradayTimeSeries>> {
         try {
             // If the user does not have scopes for activity, returns an empty array
@@ -326,8 +334,7 @@ export class FitbitDataRepository implements IFitbitDataRepository {
         }
     }
 
-    /*private*/
-    public async syncAndParseMinutesActiveIntradayTimeSeries(scopes: Array<string>, token: string, userId: string):
+    private async syncAndParseMinutesActiveIntradayTimeSeries(scopes: Array<string>, token: string, userId: string):
         Promise<Array<UserIntradayTimeSeries>> {
         try {
             // If the user does not have scopes for activity, returns an empty array
@@ -364,8 +371,7 @@ export class FitbitDataRepository implements IFitbitDataRepository {
         }
     }
 
-    /*private*/
-    public async syncAndParseHeartrateIntradayTimeSeries(scopes: Array<string>, token: string, userId: string):
+    private async syncAndParseHeartrateIntradayTimeSeries(scopes: Array<string>, token: string, userId: string):
         Promise<Array<UserIntradayTimeSeries>> {
         try {
             // If the user does not have scopes for activity, returns an empty array
@@ -456,7 +462,7 @@ export class FitbitDataRepository implements IFitbitDataRepository {
             .catch(err => this._logger.error(`Error at save physical activities logs: ${err.message}`))
     }
 
-    public saveResourceList(resources: Array<any>, userId: string, type: string): Promise<Array<Resource>> {
+    private saveResourceList(resources: Array<any>, userId: string, type: string): Promise<Array<Resource>> {
         return new Promise<Array<Resource>>(async (resolve, reject) => {
             const result: Array<Resource> = []
             if (!resources || !resources.length) return result
@@ -594,7 +600,7 @@ export class FitbitDataRepository implements IFitbitDataRepository {
         })
     }
 
-    public async getActiveMinIntradayTimeSeries(token: string, baseDate: string): Promise<any> {
+    private async getActiveMinIntradayTimeSeries(token: string, baseDate: string): Promise<any> {
         try {
             const intraMinFairlyActive: any =
                 await this.getIntradayTimeSeries(token, 'minutesFairlyActive', baseDate)
@@ -728,17 +734,6 @@ export class FitbitDataRepository implements IFitbitDataRepository {
             }
         }
         return result
-    }
-
-    public updateTokenStatus(userId: string, status: string): Promise<boolean> {
-        return new Promise<boolean>((resolve, reject) => {
-            this._userAuthRepoModel.findOneAndUpdate(
-                { user_id: userId },
-                { 'fitbit.status': status },
-                { new: true })
-                .then(res => resolve(!!res))
-                .catch(err => reject(this.mongoDBErrorListener(err)))
-        })
     }
 
     // MongoDb Error Listener
