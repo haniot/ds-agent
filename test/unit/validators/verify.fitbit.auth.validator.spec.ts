@@ -27,20 +27,10 @@ describe('Validators: VerifyFitbitAuthValidator', () => {
                 VerifyFitbitAuthValidator.validate(data)
             } catch (err) {
                 assert.propertyVal(err, 'type', 'invalid_grant')
-                assert.propertyVal(err, 'message', `The refresh token is invalid: ${data.access_token}`)
+                assert.propertyVal(err, 'message', `The refresh token is invalid: ${data.refresh_token}`)
                 assert.propertyVal(err, 'description', 'Please make a new Fitbit Auth data and try again.')
             } finally {
                 data.status = 'valid_token'
-            }
-        })
-        it('should throw an error for invalid grant', () => {
-            data.expires_in = 1569865086
-            try {
-                VerifyFitbitAuthValidator.validate(data)
-            } catch (err) {
-                assert.propertyVal(err, 'type', 'expired_token')
-                assert.propertyVal(err, 'message', 'The access token is expired.')
-                assert.propertyVal(err, 'description', 'It is necessary refresh token before continue.')
             }
         })
     })
