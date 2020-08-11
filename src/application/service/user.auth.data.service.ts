@@ -20,6 +20,7 @@ import { FitbitClientException } from '../domain/exception/fitbit.client.excepti
 import { Strings } from '../../utils/strings'
 import { VerifyFitbitAuthValidator } from '../domain/validator/verify.fitbit.auth.validator'
 import { AccessTokenScopesValidator } from '../domain/validator/access.token.scopes.validator'
+import { RepositoryException } from '../domain/exception/repository.exception'
 
 @injectable()
 export class UserAuthDataService implements IUserAuthDataService {
@@ -126,7 +127,10 @@ export class UserAuthDataService implements IUserAuthDataService {
             pubRevokeEvent()
             return Promise.resolve()
         } catch (err) {
-            if (err instanceof ValidationException) return Promise.reject(err)
+            if (err instanceof ValidationException || err instanceof RepositoryException) {
+                return Promise.reject(err)
+            }
+            // We can treat revoke as a success
             pubRevokeEvent()
             return Promise.resolve()
         }
