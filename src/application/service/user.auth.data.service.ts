@@ -38,8 +38,8 @@ export class UserAuthDataService implements IUserAuthDataService {
             CreateUserAuthDataValidator.validate(item)
 
             // 1. Verify if the token is active (valid)
-            const introspect: any = await this._fitbitAuthDataRepo.getTokenIntrospect(authData.fitbit?.access_token!)
-            if (!introspect.active) {
+            const isTokenActive: boolean = await this._fitbitAuthDataRepo.getTokenIntrospect(authData.fitbit?.access_token!)
+            if (!isTokenActive) {
                 throw new FitbitClientException(
                     'invalid_token',
                     Strings.FITBIT_ERROR.INVALID_ACCESS_TOKEN.replace('{0}', authData.fitbit?.access_token!))
@@ -156,10 +156,9 @@ export class UserAuthDataService implements IUserAuthDataService {
             AccessTokenScopesValidator.validate(authData)
 
             // 3. Verify if the token is active
-            const introspect: any = await this._fitbitAuthDataRepo.getTokenIntrospect(authData.fitbit.access_token)
-
-            // 3.1 If the token is not active, try to refresh it
-            if (!introspect.active) authData.fitbit = await refreshToken(authData.fitbit)
+            // If the token is not active, try to refresh it
+            const isTokenActive: boolean = await this._fitbitAuthDataRepo.getTokenIntrospect(authData.fitbit?.access_token!)
+            if (!isTokenActive) authData.fitbit = await refreshToken(authData.fitbit)
 
             // 4. Verify if the token is expired. In positive match, refresh the token before continue.
             VerifyFitbitAuthValidator.validate(authData.fitbit)

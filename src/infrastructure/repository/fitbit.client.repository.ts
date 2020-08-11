@@ -37,7 +37,7 @@ export class FitbitClientRepository implements IFitbitClientRepository {
         })
     }
 
-    public getTokenIntrospect(token: string): Promise<any> {
+    public getTokenIntrospect(token: string): Promise<boolean> {
         return new Promise<any>((resolve, reject) => {
             request({
                 url: `${this.fitbit_api_host}/1.1/oauth2/introspect`,
@@ -47,8 +47,7 @@ export class FitbitClientRepository implements IFitbitClientRepository {
                 json: true
             }, (err, res, body) => {
                 if (err) return reject(this.fitbitClientErrorListener(err, token))
-                if (res.statusCode === 200) return resolve(body)
-                return reject(this.fitbitAPIErrorListener(res.statusCode, token))
+                return resolve(!!body?.active)
             })
         })
     }
@@ -90,7 +89,7 @@ export class FitbitClientRepository implements IFitbitClientRepository {
     }
 
     private fitbitClientErrorListener(err: any, accessToken?: string, refreshToken?: string): FitbitClientException | undefined {
-        if (err.context) {
+        if (err.context?.errors) {
             return this.manageFitbitError(
                 { type: err.context.errors[0]?.errorType, message: err.context.errors[0]?.message },
                 accessToken,
@@ -102,8 +101,7 @@ export class FitbitClientRepository implements IFitbitClientRepository {
                 'Could not connect with the Fitbit Server',
                 'Please try again later.')
         }
-        return new FitbitClientException('internal_error',
-            'A internal error occurs. Please, try again later.')
+        return new FitbitClientException('internal_error', Strings.FITBIT_ERROR.INTERNAL_ERROR)
     }
 
     private manageFitbitError(err: any, accessToken?: string, refreshToken?: string): FitbitClientException {

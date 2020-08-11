@@ -5,5 +5,5 @@ export interface IFitbitClientRepository {
 
     getDataFromPath(path: string, accessToken: string): Promise<any>
 
-    getTokenIntrospect(token: string): Promise<any>
+    getTokenIntrospect(token: string): Promise<boolean>
 }
