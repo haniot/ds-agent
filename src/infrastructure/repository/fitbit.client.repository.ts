@@ -73,13 +73,7 @@ export class FitbitClientRepository implements IFitbitClientRepository {
 
     private fitbitAPIErrorListener(statusCode: number, accessToken?: string): any {
         const errors = {
-            400: () => new FitbitClientException(
-                'invalid_token',
-                Strings.FITBIT_ERROR.INVALID_ACCESS_TOKEN.replace(': {0}', accessToken ? `: ${accessToken}` : '')),
             401: () => new FitbitClientException(
-                'invalid_token',
-                Strings.FITBIT_ERROR.INVALID_ACCESS_TOKEN.replace(': {0}', accessToken ? `: ${accessToken}` : '')),
-            403: () => new FitbitClientException(
                 'invalid_token',
                 Strings.FITBIT_ERROR.INVALID_ACCESS_TOKEN.replace(': {0}', accessToken ? `: ${accessToken}` : '')),
             429: () => new FitbitClientException(
