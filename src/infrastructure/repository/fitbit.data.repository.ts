@@ -229,13 +229,11 @@ export class FitbitDataRepository implements IFitbitDataRepository {
             const parseWeight: Array<Weight> = this.parseWeightList(filterSyncWeights, userId)
             // Save and publish sync weight data
             if (parseWeight && parseWeight.length) {
-                this.manageResources(syncWeights, userId, ResourceType.BODY)
-                if (parseWeight.length) {
-                    this._eventBus
-                        .publish(new WeightSyncEvent(new Date(), parseWeight), 'weights.sync')
-                        .then(() => this._logger.info(`Weight Measurements from ${userId} successful published!`))
-                        .catch(err => this._logger.error(`Error publishing weights: ${err.message}`))
-                }
+                this.manageResources(syncWeights, userId, ResourceType.BODY).then().catch()
+                this._eventBus
+                    .publish(new WeightSyncEvent(new Date(), parseWeight), 'weights.sync')
+                    .then(() => this._logger.info(`Weight Measurements from ${userId} successful published!`))
+                    .catch(err => this._logger.error(`Error publishing weights: ${err.message}`))
             }
             return Promise.resolve(parseWeight)
         } catch (err) {
@@ -257,13 +255,11 @@ export class FitbitDataRepository implements IFitbitDataRepository {
             const parseSleep: Array<Sleep> = await this.parseSleepList(filterSleep, userId)
             // Save and publish sync sleep data
             if (parseSleep && parseSleep.length) {
-                this.manageResources(syncSleep, userId, ResourceType.SLEEP)
-                if (parseSleep.length) {
-                    this._eventBus
-                        .publish(new SleepSyncEvent(new Date(), parseSleep), 'sleep.sync')
-                        .then(() => this._logger.info(`Sleep from ${userId} successful published!`))
-                        .catch(err => this._logger.error(`Error publishing sleep: ${err.message}`))
-                }
+                this.manageResources(syncSleep, userId, ResourceType.SLEEP).then().catch()
+                this._eventBus
+                    .publish(new SleepSyncEvent(new Date(), parseSleep), 'sleep.sync')
+                    .then(() => this._logger.info(`Sleep from ${userId} successful published!`))
+                    .catch(err => this._logger.error(`Error publishing sleep: ${err.message}`))
             }
             return Promise.resolve(parseSleep)
         } catch (err) {
@@ -271,21 +267,21 @@ export class FitbitDataRepository implements IFitbitDataRepository {
         }
     }
 
-    private async syncAndParseActivities(scopes: Array<string>, token: string, userId: string):
-        Promise<Array<PhysicalActivity>> {
+    private async syncAndParseActivities(scopes: Array<string>, token: string, userId: string): Promise<Array<PhysicalActivity>> {
         try {
             // If the user does not have scopes for activity, returns an empty array
             if (!(scopes.includes('ract'))) return Promise.resolve([])
             // Sync activity data
             const syncActivities: Array<any> = await this.syncUserActivities(token)
+            if (!syncActivities || !syncActivities.length) return Promise.resolve([])
             // Filter activity data with previous activity data already sync
-            const filterActivities: Array<any> = await this.filterDataAlreadySync(syncActivities,
-                ResourceType.ACTIVITIES, userId)
+            const filterActivities: Array<any> = await this.filterDataAlreadySync(syncActivities, ResourceType.ACTIVITIES, userId)
+            if (!filterActivities || !filterActivities.length) return Promise.resolve([])
             // Parse activity data
             const parseActivity: Array<PhysicalActivity> = await this.parsePhysicalActivityList(filterActivities, userId)
             // Save and publish sync activity data
             if (parseActivity && parseActivity.length) {
-                this.manageResources(syncActivities, userId, ResourceType.SLEEP)
+                this.manageResources(syncActivities, userId, ResourceType.ACTIVITIES).then().catch()
                 this._eventBus
                     .publish(new PhysicalActivitySyncEvent(new Date(), parseActivity), 'physicalactivities.sync')
                     .then(() => this._logger.info(`Physical activities from ${userId} successful published!`))
@@ -426,19 +422,14 @@ export class FitbitDataRepository implements IFitbitDataRepository {
     private async filterDataAlreadySync(data: Array<any>, type: string, userId: string): Promise<Array<any>> {
         try {
             const resources: Array<any> = []
-            if (!data || !data.length) return resources
+            if (!data || !data.length) return Promise.resolve(resources)
             for await(const item of data) {
-                const query: Query = new Query().fromJSON({
-                    filters: {
-                        'resource.logId': item.logId,
-                        'user_id': userId
-                    }
-                })
+                const query: Query = new Query().fromJSON({ filters: { 'resource.logId': item.logId, 'user_id': userId } })
                 if (type === ResourceType.BODY) query.addFilter({ 'resource.weight': item.weight })
                 const exists: boolean = await this._resourceRepo.checkExists(query)
                 if (!exists) resources.push(item)
             }
-            return resources
+            return Promise.resolve(resources)
         } catch (err) {
             return await Promise.reject(err)
         }
@@ -448,18 +439,27 @@ export class FitbitDataRepository implements IFitbitDataRepository {
         return new Promise<boolean>((resolve, reject) => {
             this._resourceRepo
                 .deleteByQuery(new Query().fromJSON({ filters: { user_id: userId, type } }))
-                .then(res => resolve(!!res))
+                .then(res => resolve(res))
                 .catch(err => reject(this.mongoDBErrorListener(err)))
         })
     }
 
-    private manageResources(resources: Array<any>, userId: string, type: string): void {
-        this.cleanResourceList(userId, type)
-            .then(() => {
-                this.saveResourceList(resources, userId, type)
-                    .catch(err => this._logger.error(`Error at save physical activities logs: ${err.message}`))
-            })
-            .catch(err => this._logger.error(`Error at save physical activities logs: ${err.message}`))
+    private async manageResources(resources: Array<any>, userId: string, type: string): Promise<void> {
+        try {
+            await this.cleanResourceList(userId, type)
+            await this.saveResourceList(resources, userId, type)
+            return Promise.resolve()
+        } catch (err) {
+            this._logger.error(`Error at save ${type} logs: ${err.message}`)
+            return Promise.resolve()
+        }
+        // this.cleanResourceList(userId, type)
+        //     .then(() => {
+        //         this.saveResourceList(resources, userId, type)
+        //             .then()
+        //             .catch(err => this._logger.error(`Error at save physical activities logs: ${err.message}`))
+        //     })
+        //     .catch(err => this._logger.error(`Error at save physical activities logs: ${err.message}`))
     }
 
     private saveResourceList(resources: Array<any>, userId: string, type: string): Promise<Array<Resource>> {
