@@ -1,7 +1,8 @@
 import { EventType, IntegrationEvent } from './integration.event'
+import { Sleep } from '../../domain/model/sleep'
 
 export class SleepSyncEvent extends IntegrationEvent<any> {
-    constructor(public timestamp?: Date, public sleep?: any | Array<any>) {
+    constructor(public timestamp?: Date, public sleep?: Sleep | Array<Sleep>) {
         super('SleepSyncEvent', EventType.ACTIVITY, timestamp)
     }
 

@@ -1,15 +1,16 @@
 import { EventType, IntegrationEvent } from './integration.event'
+import { Fitbit } from '../../domain/model/fitbit'
 
-export class FitbitRevokeEvent extends IntegrationEvent<any> {
-    constructor(public timestamp?: Date, public patientId?: string) {
+export class FitbitRevokeEvent extends IntegrationEvent<Fitbit> {
+    constructor(public timestamp?: Date, public fitbit?: Fitbit) {
         super('FitbitRevokeEvent', EventType.FITBIT, timestamp)
     }
 
     public toJSON(): any {
-        if (!this.patientId) return {}
+        if (!this.fitbit) return {}
         return {
             ...super.toJSON(),
-            fitbit: { patient_id: this.patientId }
+            fitbit: this.fitbit.toJSON()
         }
     }
 }

@@ -31,6 +31,7 @@ import { SleepEntity } from '../entity/sleep.entity'
 import { WeightEntity } from '../entity/weight.entity'
 import { IntradayTimeSeriesSyncEvent } from '../../application/integration-event/event/intraday.time.series.sync.event'
 import { FitbitClientException } from '../../application/domain/exception/fitbit.client.exception'
+import { Fitbit } from '../../application/domain/model/fitbit'
 
 @injectable()
 export class FitbitDataRepository implements IFitbitDataRepository {
@@ -181,11 +182,12 @@ export class FitbitDataRepository implements IFitbitDataRepository {
     }
 
     public publishLastSync(userId: string, lastSync: string): void {
+        const fitbit: Fitbit = new Fitbit().fromJSON({
+            patient_id: userId,
+            last_sync: lastSync
+        })
         this._eventBus
-            .publish(new FitbitLastSyncEvent(new Date(), {
-                patient_id: userId,
-                last_sync: lastSync
-            }), 'fitbit.lastsync')
+            .publish(new FitbitLastSyncEvent(new Date(), fitbit), 'fitbit.lastsync')
             .then(() => this._logger.info(`Last sync from ${userId} successful published!`))
             .catch(err => this._logger.error(`Error at publish last sync: ${err.message}`))
     }

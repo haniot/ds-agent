@@ -98,9 +98,14 @@ export class UserAuthDataService implements IUserAuthDataService {
 
     public async revokeFitbitAccessToken(userId: string): Promise<void> {
         // Anonymous function used to publish revoke event
+        const fitbit: Fitbit = new Fitbit().fromJSON({
+            patient_id: userId,
+            timestamp: new Date()
+        })
+
         const pubRevokeEvent = () => {
             this._eventBus
-                .publish(new FitbitRevokeEvent(new Date(), userId), 'fitbit.revoke')
+                .publish(new FitbitRevokeEvent(new Date(), fitbit), 'fitbit.revoke')
                 .then(() => this._logger.info(`Fitbit revoke event for patient ${userId} successfully published!`))
                 .catch((err) => this._logger.error('There was an error publishing Fitbit' +
                     `revoke event for patient ${userId}. ${err.message}`))
@@ -224,13 +229,12 @@ export class UserAuthDataService implements IUserAuthDataService {
     * Publish Fitbit Token Granted Event
     */
     private publishFitbitTokenGranted(userId: string): void {
-        const fitbit: any = {
+        const fitbit: Fitbit = new Fitbit().fromJSON({
             patient_id: userId,
             timestamp: new Date()
-        }
-
+        })
         this._eventBus
-            .publish(new FitbitTokenGrantedEvent(new Date(), new Fitbit().fromJSON(fitbit)), 'fitbit.token-granted')
+            .publish(new FitbitTokenGrantedEvent(new Date(), fitbit), 'fitbit.token-granted')
             .then(() => this._logger.info(`Fitbit token granted from ${userId} successful published!`))
             .catch(err => this._logger.error(`Error at publish fitbit token granted from ${userId}: ${err.message}`))
     }
@@ -247,14 +251,14 @@ export class UserAuthDataService implements IUserAuthDataService {
    * 1500 - Generic Error
    */
     private publishFitbitAuthError(error: any, userId: string): void {
-        const fitbit: any = {
+        const fitbit: Fitbit = new Fitbit().fromJSON({
             patient_id: userId,
             error: this.manageFitbitAuthError(error)
-        }
+        })
 
-        this._logger.error(`Fitbit error: ${JSON.stringify(fitbit)}`)
+        this._logger.error(`Fitbit error: ${JSON.stringify(fitbit.toJSON())}`)
         this._eventBus
-            .publish(new FitbitErrorEvent(new Date(), new Fitbit().fromJSON(fitbit)), 'fitbit.error')
+            .publish(new FitbitErrorEvent(new Date(), fitbit), 'fitbit.error')
             .then(() => this._logger.info(`Error message about ${error.type} from ${userId} successful published!`))
             .catch(err => this._logger.error(`Error at publish error message from ${userId}: ${err.message}`))
     }
