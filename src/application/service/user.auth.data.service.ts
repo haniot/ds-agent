@@ -21,6 +21,8 @@ import { Strings } from '../../utils/strings'
 import { VerifyFitbitAuthValidator } from '../domain/validator/verify.fitbit.auth.validator'
 import { AccessTokenScopesValidator } from '../domain/validator/access.token.scopes.validator'
 import { RepositoryException } from '../domain/exception/repository.exception'
+import { FitbitTokenGrantedEvent } from '../integration-event/event/fitbit.token.granted.event'
+import { Fitbit } from '../domain/model/fitbit'
 
 @injectable()
 export class UserAuthDataService implements IUserAuthDataService {
@@ -52,11 +54,17 @@ export class UserAuthDataService implements IUserAuthDataService {
                 .findOne(new Query().fromJSON({ filters: { user_id: authData.user_id! } }))
 
             // 3. f the user has no token, the new token will be associated with the user
-            if (!alreadySaved) return this._userAuthDataRepo.create(authData)
+            if (!alreadySaved) {
+                const newAuthData: UserAuthData = await this._userAuthDataRepo.create(authData)
+                if (newAuthData) this.publishFitbitTokenGranted(item.user_id!)
+                return Promise.resolve(newAuthData)
+            }
 
             // 4. If the user has a token, it will be updated with the new token
             authData.id = alreadySaved.id
-            return this._userAuthDataRepo.update(authData)
+            const updatedAuthData: UserAuthData = await this._userAuthDataRepo.update(authData)
+            if (updatedAuthData) this.publishFitbitTokenGranted(item.user_id!)
+            return Promise.resolve(updatedAuthData)
         } catch (err) {
             if (err.type) return Promise.reject(this.manageFitbitAuthError(err))
             return Promise.reject(err)
@@ -213,6 +221,21 @@ export class UserAuthDataService implements IUserAuthDataService {
     }
 
     /*
+    * Publish Fitbit Token Granted Event
+    */
+    private publishFitbitTokenGranted(userId: string): void {
+        const fitbit: any = {
+            patient_id: userId,
+            timestamp: new Date()
+        }
+
+        this._eventBus
+            .publish(new FitbitTokenGrantedEvent(new Date(), new Fitbit().fromJSON(fitbit)), 'fitbit.token-granted')
+            .then(() => this._logger.info(`Fitbit token granted from ${userId} successful published!`))
+            .catch(err => this._logger.error(`Error at publish fitbit token granted from ${userId}: ${err.message}`))
+    }
+
+    /*
    * Publish Error according to the type.
    * Mapped Error Codes:
    *
@@ -231,7 +254,7 @@ export class UserAuthDataService implements IUserAuthDataService {
 
         this._logger.error(`Fitbit error: ${JSON.stringify(fitbit)}`)
         this._eventBus
-            .publish(new FitbitErrorEvent(new Date(), fitbit), 'fitbit.error')
+            .publish(new FitbitErrorEvent(new Date(), new Fitbit().fromJSON(fitbit)), 'fitbit.error')
             .then(() => this._logger.info(`Error message about ${error.type} from ${userId} successful published!`))
             .catch(err => this._logger.error(`Error at publish error message from ${userId}: ${err.message}`))
     }

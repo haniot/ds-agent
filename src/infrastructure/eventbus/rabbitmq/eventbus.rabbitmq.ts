@@ -41,7 +41,9 @@ export class EventBusRabbitMQ implements IEventBus {
      */
     public async publish(event: IntegrationEvent<any>, routingKey: string): Promise<boolean> {
         return new Promise<boolean>(async (resolve, reject) => {
-            if (!this.connectionPub.isOpen) return resolve(false)
+            if (!this.connectionPub.isOpen) {
+                return reject(new EventBusException('No connection open!'))
+            }
 
             const message = { content: event.toJSON() }
             this.connectionPub
@@ -67,7 +69,9 @@ export class EventBusRabbitMQ implements IEventBus {
     public async subscribe(event: IntegrationEvent<any>, handler: IIntegrationEventHandler<IntegrationEvent<any>>,
                            routingKey: string): Promise<any> {
         return new Promise<boolean>(async (resolve, reject) => {
-            if (!this.connectionSub.isOpen) return resolve(false)
+            if (!this.connectionSub.isOpen) {
+                return reject(new EventBusException('No connection open!'))
+            }
             if (this._event_handlers.has(event.event_name)) return resolve(true)
 
             this.connectionSub

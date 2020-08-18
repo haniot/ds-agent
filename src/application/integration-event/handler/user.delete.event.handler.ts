@@ -28,8 +28,7 @@ export class UserDeleteEventHandler implements IIntegrationEventHandler<UserDele
 
     public async handle(event: UserDeleteEvent): Promise<void> {
         try {
-            if (typeof event === 'string') event = JSON.parse(event)
-            if (!event.user && !event.user.id) {
+            if (!event.user || !event.user.id) {
                 throw new ValidationException('Event received but could not be handled due to an error in the event format.')
             }
             const childId: string = event.user.id

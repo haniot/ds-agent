@@ -453,13 +453,6 @@ export class FitbitDataRepository implements IFitbitDataRepository {
             this._logger.error(`Error at save ${type} logs: ${err.message}`)
             return Promise.resolve()
         }
-        // this.cleanResourceList(userId, type)
-        //     .then(() => {
-        //         this.saveResourceList(resources, userId, type)
-        //             .then()
-        //             .catch(err => this._logger.error(`Error at save physical activities logs: ${err.message}`))
-        //     })
-        //     .catch(err => this._logger.error(`Error at save physical activities logs: ${err.message}`))
     }
 
     private saveResourceList(resources: Array<any>, userId: string, type: string): Promise<Array<Resource>> {
