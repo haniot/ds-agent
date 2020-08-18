@@ -40,6 +40,9 @@ export class UserDeleteEventHandler implements IIntegrationEventHandler<UserDele
             const query: Query = new Query().fromJSON({ filters: { user_id: childId } })
             const userAuthData: UserAuthData = await this.userAuthDataRepo.findOne(query)
             if (userAuthData) {
+                if (userAuthData.fitbit?.access_token) {
+                     this.fitbitAuthDataRepo.revokeToken(userAuthData.fitbit.access_token).then()
+                }
                 await this.userAuthDataRepo.deleteByQuery(query)
                 await this.resourceRepo.deleteByQuery(query)
 

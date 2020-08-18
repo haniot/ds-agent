@@ -51,7 +51,8 @@ export class FitbitClientRepository implements IFitbitClientRepository {
                 json: true
             }, (err, res, body) => {
                 if (err) return reject(this.fitbitClientErrorListener(err, token))
-                return resolve(!!body?.active)
+                if (res.statusCode === 200)  return resolve(!!body?.active)
+                return reject(this.fitbitAPIErrorListener(res.statusCode, token))
             })
         })
     }
