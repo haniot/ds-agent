@@ -38,7 +38,7 @@ export class SubscribeEventBusTask implements IBackgroundTask {
                         DIContainer.get(Identifier.RESOURCE_REPOSITORY),
                         this._logger
                     ),
-                    'users.delete'
+                    UserDeleteEvent.ROUTING_KEY
                 ).then(res => {
                 this._logger.info('Subscribe in UserDeleteEvent successful!')
             })

@@ -20,7 +20,9 @@ gulp.task('ts-lint', () => {
 gulp.task('copy-files', () => {
     const COPY_FILES = ['package.json']
     return gulp.src(COPY_FILES)
-        .pipe(gulp.dest('dist'))
+            .pipe(gulp.dest('dist')) &&
+        gulp.src('./src/ui/swagger/*.json')
+            .pipe(gulp.dest('dist/src/ui/swagger'))
 })
 
 // WATCH

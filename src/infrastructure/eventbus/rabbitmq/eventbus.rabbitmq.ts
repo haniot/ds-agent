@@ -10,22 +10,15 @@ import { EventBusException } from '../../../application/domain/exception/eventbu
 @injectable()
 export class EventBusRabbitMQ implements IEventBus {
     private readonly RABBITMQ_QUEUE_NAME: string = 'ds.app'
-    private readonly RABBITMQ_RPC_QUEUE_NAME: string = 'ds.app.rpc'
-    private readonly RABBITMQ_RPC_EXCHANGE_NAME: string = 'ds.app.rpc'
     private _receiveFromYourself: boolean
     private _event_handlers: Map<string, IIntegrationEventHandler<IntegrationEvent<any>>>
-    private _rpcServer!: any
-    private _rpcServerInitialized: boolean
 
     constructor(
         @inject(Identifier.RABBITMQ_CONNECTION) public connectionPub: IConnectionEventBus,
-        @inject(Identifier.RABBITMQ_CONNECTION) public connectionSub: IConnectionEventBus,
-        @inject(Identifier.RABBITMQ_CONNECTION) public connectionRpcServer: IConnectionEventBus,
-        @inject(Identifier.RABBITMQ_CONNECTION) public connectionRpcClient: IConnectionEventBus
+        @inject(Identifier.RABBITMQ_CONNECTION) public connectionSub: IConnectionEventBus
     ) {
         this._event_handlers = new Map()
         this._receiveFromYourself = false
-        this._rpcServerInitialized = false
     }
 
     set receiveFromYourself(value: boolean) {
@@ -74,10 +67,10 @@ export class EventBusRabbitMQ implements IEventBus {
             }
             if (this._event_handlers.has(event.event_name)) return resolve(true)
 
+            this._event_handlers.set(event.event_name, handler)
             this.connectionSub
                 .subscribe(this.RABBITMQ_QUEUE_NAME, event.type, routingKey, (message) => {
                     message.ack()
-
                     const event_name: string = message.content.event_name
                     if (event_name) {
                         const event_handler: IIntegrationEventHandler<IntegrationEvent<any>> | undefined =
@@ -97,65 +90,10 @@ export class EventBusRabbitMQ implements IEventBus {
                     receiveFromYourself: this._receiveFromYourself
                 })
                 .then(() => {
-                    this._event_handlers.set(event.event_name, handler)
                     resolve(true)
                 })
                 .catch(reject)
         })
-    }
-
-    public provideResource(name: string, resource: (...any) => any): Promise<boolean> {
-        return new Promise<boolean>(async (resolve, reject) => {
-            if (!this.connectionRpcServer.isOpen) {
-                return reject(new EventBusException('No connection open!'))
-            }
-
-            this.initializeRPCServer()
-            this._rpcServer.addResource(name, resource)
-
-            this._rpcServer
-                .start()
-                .then(() => resolve(true))
-                .catch(reject)
-        })
-    }
-
-    public executeResource(serviceName: string, resourceName: string, queryString?: string): Promise<any> {
-        if (!this.connectionRpcClient.isOpen) {
-            return Promise.reject(new EventBusException('No connection open!'))
-        }
-
-        return this.connectionRpcClient
-            .rpcClient(
-                serviceName,
-                resourceName,
-                [queryString],
-                {
-                    exchange: {
-                        type: 'direct',
-                        durable: true
-                    },
-                    rcpTimeout: 5000
-                })
-    }
-
-    private initializeRPCServer(): void {
-        if (!this._rpcServerInitialized) {
-            this._rpcServerInitialized = true
-            this._rpcServer = this.connectionRpcServer
-                .createRpcServer(
-                    this.RABBITMQ_RPC_QUEUE_NAME,
-                    this.RABBITMQ_RPC_EXCHANGE_NAME,
-                    [],
-                    {
-                        exchange: {
-                            type: 'direct',
-                            durable: true
-                        }, queue: {
-                            durable: true
-                        }
-                    })
-        }
     }
 
     /**
@@ -166,8 +104,6 @@ export class EventBusRabbitMQ implements IEventBus {
     public async dispose(): Promise<void> {
         if (this.connectionPub) await this.connectionPub.close()
         if (this.connectionSub) await this.connectionSub.close()
-        if (this.connectionRpcServer) await this.connectionRpcServer.close()
-        if (this.connectionRpcClient) await this.connectionRpcClient.close()
         this._event_handlers.clear()
         return Promise.resolve()
     }

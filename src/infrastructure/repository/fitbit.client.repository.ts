@@ -50,6 +50,7 @@ export class FitbitClientRepository implements IFitbitClientRepository {
                 form: { token },
                 json: true
             }, (err, res, body) => {
+                this._logger.debug(`getTokenIntrospect | error = ${err} | body = ${JSON.stringify(body)}`)
                 if (err) return reject(this.fitbitClientErrorListener(err, token))
                 if (res.statusCode === 200)  return resolve(!!body?.active)
                 return reject(this.fitbitAPIErrorListener(res.statusCode, token))
@@ -67,6 +68,7 @@ export class FitbitClientRepository implements IFitbitClientRepository {
             }, (err, res, body) => {
                 if (err) return reject(this.fitbitClientErrorListener(err, accessToken))
                 if (res.statusCode === 200) return resolve(body)
+                this._logger.debug(`Error getDataFromPath | path = ${path} | body = ${JSON.stringify(body)}`)
                 return reject(this.fitbitAPIErrorListener(res.statusCode, accessToken))
             })
         })
@@ -100,7 +102,6 @@ export class FitbitClientRepository implements IFitbitClientRepository {
                 'Could not connect with the Fitbit Server',
                 'Please try again later.')
         }
-        this._logger.error(`FitbitClient - Unknown error associated with token "${accessToken}" | ${err}`)
         return new FitbitClientException('internal_error', Strings.FITBIT_ERROR.INTERNAL_ERROR)
     }
 

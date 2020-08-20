@@ -77,6 +77,7 @@ export class SyncFitbitDataTask implements IBackgroundTask {
                     socket.once('error', onError)
                     socket.once('timeout', onError)
                     socket.connect(Number(this.redisURI.port!), this.redisURI.hostname!, () => {
+                        this._logger.info('Redis connection established!')
                         socket.end()
                         return resolve()
                     })

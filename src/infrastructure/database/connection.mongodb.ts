@@ -47,7 +47,7 @@ export class ConnectionMongodb implements IConnectionDB {
                 this._connection = connection
                 this.connectionStatusListener(this._connection)
                 this._eventConnection.emit('connected')
-                this._logger.info('Connection established with MongoDB...')
+                this._logger.info('MongoDB connection established!')
             })
             .catch((err) => {
                 this._connection = undefined
@@ -72,14 +72,14 @@ export class ConnectionMongodb implements IConnectionDB {
         }
 
         connection.on('connected', (con) => {
-            this._logger.warn('Reconnection established with MongoDB...')
+            this._logger.info('MongoDB connection re-established!')
             this._eventConnection.emit('connected')
         })
 
         connection.on('disconnected', () => {
             this._connection = undefined
             this._eventConnection.emit('disconnected')
-            this._logger.warn('Connection to MongoDB was lost...')
+            this._logger.warn('MongoDB connection has been lost...')
         })
     }
 

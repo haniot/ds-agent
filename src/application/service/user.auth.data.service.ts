@@ -105,7 +105,7 @@ export class UserAuthDataService implements IUserAuthDataService {
 
         const pubRevokeEvent = () => {
             this._eventBus
-                .publish(new FitbitRevokeEvent(new Date(), fitbit), 'fitbit.revoke')
+                .publish(new FitbitRevokeEvent(new Date(), fitbit), FitbitRevokeEvent.ROUTING_KEY)
                 .then(() => this._logger.info(`Fitbit revoke event for patient ${userId} successfully published!`))
                 .catch((err) => this._logger.error('There was an error publishing Fitbit' +
                     `revoke event for patient ${userId}. ${err.message}`))
@@ -234,7 +234,7 @@ export class UserAuthDataService implements IUserAuthDataService {
             timestamp: new Date()
         })
         this._eventBus
-            .publish(new FitbitTokenGrantedEvent(new Date(), fitbit), 'fitbit.token-granted')
+            .publish(new FitbitTokenGrantedEvent(new Date(), fitbit), FitbitTokenGrantedEvent.ROUTING_KEY)
             .then(() => this._logger.info(`Fitbit token granted from ${userId} successful published!`))
             .catch(err => this._logger.error(`Error at publish fitbit token granted from ${userId}: ${err.message}`))
     }
@@ -258,7 +258,7 @@ export class UserAuthDataService implements IUserAuthDataService {
 
         this._logger.error(`Fitbit error: ${JSON.stringify(fitbit.toJSON())}`)
         this._eventBus
-            .publish(new FitbitErrorEvent(new Date(), fitbit), 'fitbit.error')
+            .publish(new FitbitErrorEvent(new Date(), fitbit), FitbitErrorEvent.ROUTING_KEY)
             .then(() => this._logger.info(`Error message about ${error.type} from ${userId} successful published!`))
             .catch(err => this._logger.error(`Error at publish error message from ${userId}: ${err.message}`))
     }
