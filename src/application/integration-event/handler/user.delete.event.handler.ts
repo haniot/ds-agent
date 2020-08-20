@@ -28,19 +28,21 @@ export class UserDeleteEventHandler implements IIntegrationEventHandler<UserDele
 
     public async handle(event: UserDeleteEvent): Promise<void> {
         try {
-            if (typeof event === 'string') event = JSON.parse(event)
-            if (!event.user && !event.user.id) {
+            if (!event.user || !event.user.id) {
                 throw new ValidationException('Event received but could not be handled due to an error in the event format.')
             }
-            const childId: string = event.user.id
+            const userId: string = event.user.id
 
-            // 1. Validate childId.
-            ObjectIdValidator.validate(childId)
+            // 1. Validate userId.
+            ObjectIdValidator.validate(userId)
 
             // 2. Delete Child Data
-            const query: Query = new Query().fromJSON({ filters: { user_id: childId } })
+            const query: Query = new Query().fromJSON({ filters: { user_id: userId } })
             const userAuthData: UserAuthData = await this.userAuthDataRepo.findOne(query)
             if (userAuthData) {
+                if (userAuthData.fitbit?.access_token) {
+                     this.fitbitAuthDataRepo.revokeToken(userAuthData.fitbit.access_token).then()
+                }
                 await this.userAuthDataRepo.deleteByQuery(query)
                 await this.resourceRepo.deleteByQuery(query)
 

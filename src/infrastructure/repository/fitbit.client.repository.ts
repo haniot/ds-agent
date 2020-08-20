@@ -1,18 +1,22 @@
 import FitbitApiClient from 'fitbit-node'
 import { FitbitAuthData } from '../../application/domain/model/fitbit.auth.data'
-import { injectable } from 'inversify'
+import { inject, injectable } from 'inversify'
 import { IFitbitClientRepository } from '../../application/port/fitbit.client.repository.interface'
 import { FitbitClientException } from '../../application/domain/exception/fitbit.client.exception'
 import request from 'request'
 import { Strings } from '../../utils/strings'
+import { Identifier } from '../../di/identifiers'
+import { ILogger } from '../../utils/custom.logger'
 
 @injectable()
 export class FitbitClientRepository implements IFitbitClientRepository {
 
     private fitbit_client: any
-    private fitbit_api_host: string
+    private readonly fitbit_api_host: string
 
-    constructor() {
+    constructor(
+        @inject(Identifier.LOGGER) private readonly _logger: ILogger
+    ) {
         this.fitbit_api_host = 'https://api.fitbit.com'
         this.fitbit_client = new FitbitApiClient({
             clientId: process.env.FITBIT_CLIENT_ID,
@@ -46,8 +50,10 @@ export class FitbitClientRepository implements IFitbitClientRepository {
                 form: { token },
                 json: true
             }, (err, res, body) => {
+                this._logger.debug(`getTokenIntrospect | error = ${err} | body = ${JSON.stringify(body)}`)
                 if (err) return reject(this.fitbitClientErrorListener(err, token))
-                return resolve(!!body?.active)
+                if (res.statusCode === 200)  return resolve(!!body?.active)
+                return reject(this.fitbitAPIErrorListener(res.statusCode, token))
             })
         })
     }
@@ -62,6 +68,7 @@ export class FitbitClientRepository implements IFitbitClientRepository {
             }, (err, res, body) => {
                 if (err) return reject(this.fitbitClientErrorListener(err, accessToken))
                 if (res.statusCode === 200) return resolve(body)
+                this._logger.debug(`Error getDataFromPath | path = ${path} | body = ${JSON.stringify(body)}`)
                 return reject(this.fitbitAPIErrorListener(res.statusCode, accessToken))
             })
         })
@@ -69,13 +76,7 @@ export class FitbitClientRepository implements IFitbitClientRepository {
 
     private fitbitAPIErrorListener(statusCode: number, accessToken?: string): any {
         const errors = {
-            400: () => new FitbitClientException(
-                'invalid_token',
-                Strings.FITBIT_ERROR.INVALID_ACCESS_TOKEN.replace(': {0}', accessToken ? `: ${accessToken}` : '')),
             401: () => new FitbitClientException(
-                'invalid_token',
-                Strings.FITBIT_ERROR.INVALID_ACCESS_TOKEN.replace(': {0}', accessToken ? `: ${accessToken}` : '')),
-            403: () => new FitbitClientException(
                 'invalid_token',
                 Strings.FITBIT_ERROR.INVALID_ACCESS_TOKEN.replace(': {0}', accessToken ? `: ${accessToken}` : '')),
             429: () => new FitbitClientException(

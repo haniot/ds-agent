@@ -6,10 +6,13 @@ Microservice responsible for data synchronization of FitBit platform with HANIoT
 
 **Main features:**
 - Fitbit access token management;
-- Automatically sync Fitbit data;
+- Automatically sync Fitbit data:
+  - Sleep
+  - Physical Activity
+  - Weight
+  - Time Series: steps, distance, calories, active minutes (minutesFairlyActive + minutesVeryActive) and heart rate
 - Publish sync data to a message channel;
-- Fitbit access token revocation;
-- Subscriber to resources provided by Fitbit.
+- Fitbit access token revocation.
  
 ## Prerequisites
 - [Node 12.0.0+](https://nodejs.org/en/download/)
@@ -20,7 +23,7 @@ Microservice responsible for data synchronization of FitBit platform with HANIoT
 ---
 
 ## Set the environment variables
-Application settings are defined by environment variables. To define the settings, make a copy of the `.env.example` file, naming for `.env`. After that, open and edit the settings as needed. The following environments variables are available:
+The application settings are defined by environment variables. To define the settings, make a copy of the `.env.example` file, naming for `.env`. After that, open and edit the settings as needed. The following environments variables are available:
 
 | VARIABLE | DESCRIPTION  | DEFAULT |
 |-----|-----|-----|
@@ -35,12 +38,12 @@ Application settings are defined by environment variables. To define the setting
 | `MONGODB_KEY_PATH` | Client certificate and key in .pem format to connect to MongoDB | `.certs/mongodb/client.pem` |
 | `MONGODB_CA_PATH` | MongoDB Certificate of the Authentication entity (CA) | `.certs/mongodb/ca.pem` |
 | `REDIS_URI` | Redis database connection URI. Using for sync jobs. | `redis://127.0.0.1:6379` |
-| `RABBITMQ_URI` | URI for connection to RabbitMQ. The [URI specifications ](https://www.rabbitmq.com/uri-spec.html). For example: `amqp://user:pass@host:port/vhost`. When TLS is used for conection the protocol is amqps and client certificates are required (`RABBITMQ_CERT_PATH`, `RABBITMQ_KEY_PATH`, `RABBITMQ_CA_PATH`) | `amqp://guest:guest`<br/>`@127.0.0.1:5672` |
+| `RABBITMQ_URI` | URI for connection to RabbitMQ. The [URI specifications ](https://www.rabbitmq.com/uri-spec.html). For example: `amqp://user:pass@host:port/vhost`. When TLS is used for connection the protocol is amqps and client certificates are required (`RABBITMQ_CERT_PATH`, `RABBITMQ_KEY_PATH`, `RABBITMQ_CA_PATH`) | `amqp://guest:guest`<br/>`@127.0.0.1:5672` |
 | `RABBITMQ_CERT_PATH` | RabbitMQ Certificate | `.certs/rabbitmq/cert.pem` |
 | `RABBITMQ_KEY_PATH` | RabbitMQ Key | `.certs/rabbitmq/key.pem` |
 | `RABBITMQ_CA_PATH` | RabbitMQ Certificate of the Authentication entity (CA). | `.certs/rabbitmq/ca.pem` |
-| `FITBIT_CLIENT_ID` | Client Id for Fitbit Application resposible to manage user data. | `CLIENT_ID_HERE` |
-| `FITBIT_CLIENT_SECRET` | Client Secret for Fitbit Application resposible to manage user data. | `CLIENT_SECRET_HERE` |
+| `FITBIT_CLIENT_ID` | Client Id for Fitbit Application responsible to manage user data. | `CLIENT_ID_HERE` |
+| `FITBIT_CLIENT_SECRET` | Client Secret for Fitbit Application responsible to manage user data. | `CLIENT_SECRET_HERE` |
 | `EXPRESSION_AUTO_SYNC` | Defines how often the application will automatically sync user data in the background according to the crontab expression. | `0 0 * * 0` |
 
 ## Generate Certificates
