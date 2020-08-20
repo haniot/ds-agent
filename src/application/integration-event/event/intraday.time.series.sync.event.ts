@@ -1,8 +1,12 @@
 import { EventType, IntegrationEvent } from './integration.event'
+import { UserIntradayTimeSeries } from '../../domain/model/user.intraday.time.series'
 
 export class IntradayTimeSeriesSyncEvent extends IntegrationEvent<any> {
-    constructor(public timestamp?: Date, public patientId?: string, public timeSeries?: any) {
-        super('IntradayTimeSeriesSyncEvent', EventType.TIME_SERIES, timestamp)
+    public static readonly ROUTING_KEY: string = 'intraday.sync'
+    public static readonly NAME: string = 'IntradayTimeSeriesSyncEvent'
+
+    constructor(public timestamp?: Date, public patientId?: string, public timeSeries?: UserIntradayTimeSeries) {
+        super(IntradayTimeSeriesSyncEvent.NAME, EventType.TIME_SERIES, timestamp)
     }
 
     public toJSON(): any {

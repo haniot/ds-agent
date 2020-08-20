@@ -30,6 +30,7 @@ export class BackgroundService {
 
             // Open RabbitMQ connection and perform tasks
             this._startTasks()
+
         } catch (err) {
             return Promise.reject(new Error(`Error initializing services in background! ${err.message}`))
         }
@@ -53,8 +54,12 @@ export class BackgroundService {
         this._eventBus
             .connectionSub
             .open(rabbitConfigs.uri, rabbitConfigs.options)
-            .then(() => {
-                this._logger.info('Connection with subscribe event opened successful!')
+            .then((conn) => {
+                this._logger.info('Subscribe connection established!')
+
+                conn.on('disconnected', () => this._logger.warn('Subscribe connection has been lost...'))
+                conn.on('reestablished', () => this._logger.info('Subscribe connection re-established!'))
+
                 this._subscribeTask.run()
             })
             .catch(err => {
@@ -64,8 +69,11 @@ export class BackgroundService {
         this._eventBus
             .connectionPub
             .open(rabbitConfigs.uri, rabbitConfigs.options)
-            .then(() => {
-                this._logger.info('Connection with publisher event opened successful!')
+            .then((conn) => {
+                this._logger.info('Publish connection established!')
+
+                conn.on('disconnected', () => this._logger.warn('Publish connection has been lost...'))
+                conn.on('reestablished', () => this._logger.info('Publish connection re-established!'))
             })
             .catch(err => {
                 this._logger.error(`Error trying to get connection to Event Bus for event publishing. ${err.message}`)

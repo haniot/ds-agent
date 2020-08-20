@@ -1,15 +1,19 @@
 import { EventType, IntegrationEvent } from './integration.event'
+import { Fitbit } from '../../domain/model/fitbit'
 
-export class FitbitErrorEvent extends IntegrationEvent<any> {
-    constructor(public timestamp?: Date, public error?: any) {
-        super('FitbitErrorEvent', EventType.FITBIT, timestamp)
+export class FitbitErrorEvent extends IntegrationEvent<Fitbit> {
+    public static readonly ROUTING_KEY: string = 'fitbit.error'
+    public static readonly NAME: string = 'FitbitErrorEvent'
+
+    constructor(public timestamp?: Date, public fitbit?: Fitbit) {
+        super(FitbitErrorEvent.NAME, EventType.FITBIT, timestamp)
     }
 
     public toJSON(): any {
-        if (!this.error) return {}
+        if (!this.fitbit) return {}
         return {
             ...super.toJSON(),
-            fitbit: this.error
+            fitbit: this.fitbit.toJSON()
         }
     }
 }

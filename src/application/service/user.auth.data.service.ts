@@ -21,6 +21,8 @@ import { Strings } from '../../utils/strings'
 import { VerifyFitbitAuthValidator } from '../domain/validator/verify.fitbit.auth.validator'
 import { AccessTokenScopesValidator } from '../domain/validator/access.token.scopes.validator'
 import { RepositoryException } from '../domain/exception/repository.exception'
+import { FitbitTokenGrantedEvent } from '../integration-event/event/fitbit.token.granted.event'
+import { Fitbit } from '../domain/model/fitbit'
 
 @injectable()
 export class UserAuthDataService implements IUserAuthDataService {
@@ -38,8 +40,8 @@ export class UserAuthDataService implements IUserAuthDataService {
             CreateUserAuthDataValidator.validate(item)
 
             // 1. Verify if the token is active (valid)
-            const introspect: any = await this._fitbitAuthDataRepo.getTokenIntrospect(authData.fitbit?.access_token!)
-            if (!introspect.active) {
+            const isTokenActive: boolean = await this._fitbitAuthDataRepo.getTokenIntrospect(authData.fitbit?.access_token!)
+            if (!isTokenActive) {
                 throw new FitbitClientException(
                     'invalid_token',
                     Strings.FITBIT_ERROR.INVALID_ACCESS_TOKEN.replace('{0}', authData.fitbit?.access_token!))
@@ -52,11 +54,17 @@ export class UserAuthDataService implements IUserAuthDataService {
                 .findOne(new Query().fromJSON({ filters: { user_id: authData.user_id! } }))
 
             // 3. f the user has no token, the new token will be associated with the user
-            if (!alreadySaved) return this._userAuthDataRepo.create(authData)
+            if (!alreadySaved) {
+                const newAuthData: UserAuthData = await this._userAuthDataRepo.create(authData)
+                if (newAuthData) this.publishFitbitTokenGranted(item.user_id!)
+                return Promise.resolve(newAuthData)
+            }
 
             // 4. If the user has a token, it will be updated with the new token
             authData.id = alreadySaved.id
-            return this._userAuthDataRepo.update(authData)
+            const updatedAuthData: UserAuthData = await this._userAuthDataRepo.update(authData)
+            if (updatedAuthData) this.publishFitbitTokenGranted(item.user_id!)
+            return Promise.resolve(updatedAuthData)
         } catch (err) {
             if (err.type) return Promise.reject(this.manageFitbitAuthError(err))
             return Promise.reject(err)
@@ -90,9 +98,14 @@ export class UserAuthDataService implements IUserAuthDataService {
 
     public async revokeFitbitAccessToken(userId: string): Promise<void> {
         // Anonymous function used to publish revoke event
+        const fitbit: Fitbit = new Fitbit().fromJSON({
+            patient_id: userId,
+            timestamp: new Date()
+        })
+
         const pubRevokeEvent = () => {
             this._eventBus
-                .publish(new FitbitRevokeEvent(new Date(), userId), 'fitbit.revoke')
+                .publish(new FitbitRevokeEvent(new Date(), fitbit), FitbitRevokeEvent.ROUTING_KEY)
                 .then(() => this._logger.info(`Fitbit revoke event for patient ${userId} successfully published!`))
                 .catch((err) => this._logger.error('There was an error publishing Fitbit' +
                     `revoke event for patient ${userId}. ${err.message}`))
@@ -110,7 +123,7 @@ export class UserAuthDataService implements IUserAuthDataService {
             }
 
             // 2. Check if token is expired.
-            const now: number = moment().subtract(5, 'minute').unix()
+            const now: number = moment().add(5, 'minute').unix()
             if (now > authData.fitbit?.expires_in!) {
                 const newAuthData: FitbitAuthData =
                     await this._fitbitAuthDataRepo
@@ -124,11 +137,17 @@ export class UserAuthDataService implements IUserAuthDataService {
             // 4. Remove Fitbit authorization data from local database.
             this._fitbitAuthDataRepo.removeFitbitAuthData(userId).then().catch()
 
+            // We can treat revoke as a success
             pubRevokeEvent()
             return Promise.resolve()
         } catch (err) {
+            // Only if The error is a ValidationException or RepositoryException, reject it
             if (err instanceof ValidationException || err instanceof RepositoryException) {
                 return Promise.reject(err)
+            }
+            // If the access token or the refresh token is invalid, remove the fitbit auth data form user
+            if (err.type && ['invalid_token', 'invalid_grant'].includes(err.type)) {
+                await this._fitbitAuthDataRepo.removeFitbitAuthData(userId)
             }
             // We can treat revoke as a success
             pubRevokeEvent()
@@ -156,14 +175,13 @@ export class UserAuthDataService implements IUserAuthDataService {
             AccessTokenScopesValidator.validate(authData)
 
             // 3. Verify if the token is active
-            const introspect: any = await this._fitbitAuthDataRepo.getTokenIntrospect(authData.fitbit.access_token)
-
-            // 3.1 If the token is not active, try to refresh it
-            if (!introspect.active) authData.fitbit = await refreshToken(authData.fitbit)
+            // If the token is not active, try to refresh it
+            const isTokenActive: boolean = await this._fitbitAuthDataRepo.getTokenIntrospect(authData.fitbit?.access_token!)
+            if (!isTokenActive) authData.fitbit = await refreshToken(authData.fitbit)
 
             // 4. Verify if the token is expired. In positive match, refresh the token before continue.
             VerifyFitbitAuthValidator.validate(authData.fitbit)
-            const now: number = moment().subtract(5, 'minute').unix()
+            const now: number = moment().add(5, 'minute').unix()
             if (now > authData.fitbit.expires_in!) authData.fitbit = await refreshToken(authData.fitbit)
 
             // 5. Proceed with the sync
@@ -171,11 +189,14 @@ export class UserAuthDataService implements IUserAuthDataService {
             return Promise.resolve(result)
         } catch (err) {
             if (err.type) {
-                // If the token has expired, it is not necessary to update token status
-                if (err.type !== 'system') this.updateTokenStatus(userId, err.type)
+                // If the access token is invalid, it is necessary to update token status
+                if (err.type === 'invalid_token') this.updateTokenStatus(userId, err.type)
 
-                // If the error was generated by a client error, it not necessary to publish it in message channel
-                if (err.type !== 'client_error') this.publishFitbitAuthError(err, userId)
+                // If the refresh token is invalid, remove the fitbit auth data form user
+                else if (err.type === 'invalid_grant') await this._fitbitAuthDataRepo.removeFitbitAuthData(userId)
+
+                // If the error was generated by a client or internal error, it not necessary to publish it in message channel
+                if (!['internal_error', 'client_error'].includes(err.type)) this.publishFitbitAuthError(err, userId)
                 return Promise.reject(this.manageFitbitAuthError(err))
             }
             return Promise.reject(err)
@@ -205,6 +226,20 @@ export class UserAuthDataService implements IUserAuthDataService {
     }
 
     /*
+    * Publish Fitbit Token Granted Event
+    */
+    private publishFitbitTokenGranted(userId: string): void {
+        const fitbit: Fitbit = new Fitbit().fromJSON({
+            patient_id: userId,
+            timestamp: new Date()
+        })
+        this._eventBus
+            .publish(new FitbitTokenGrantedEvent(new Date(), fitbit), FitbitTokenGrantedEvent.ROUTING_KEY)
+            .then(() => this._logger.info(`Fitbit token granted from ${userId} successful published!`))
+            .catch(err => this._logger.error(`Error at publish fitbit token granted from ${userId}: ${err.message}`))
+    }
+
+    /*
    * Publish Error according to the type.
    * Mapped Error Codes:
    *
@@ -216,14 +251,14 @@ export class UserAuthDataService implements IUserAuthDataService {
    * 1500 - Generic Error
    */
     private publishFitbitAuthError(error: any, userId: string): void {
-        const fitbit: any = {
+        const fitbit: Fitbit = new Fitbit().fromJSON({
             patient_id: userId,
             error: this.manageFitbitAuthError(error)
-        }
+        })
 
-        this._logger.error(`Fitbit error: ${JSON.stringify(fitbit)}`)
+        this._logger.error(`Fitbit error: ${JSON.stringify(fitbit.toJSON())}`)
         this._eventBus
-            .publish(new FitbitErrorEvent(new Date(), fitbit), 'fitbit.error')
+            .publish(new FitbitErrorEvent(new Date(), fitbit), FitbitErrorEvent.ROUTING_KEY)
             .then(() => this._logger.info(`Error message about ${error.type} from ${userId} successful published!`))
             .catch(err => this._logger.error(`Error at publish error message from ${userId}: ${err.message}`))
     }
