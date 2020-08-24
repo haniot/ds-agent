@@ -51,9 +51,7 @@ export class FitbitClientRepository implements IFitbitClientRepository {
                 json: true
             }, (err, res, body) => {
                 this._logger.debug(`getTokenIntrospect | error = ${err} | body = ${JSON.stringify(body)}`)
-                if (err) return reject(this.fitbitClientErrorListener(err, token))
-                if (res.statusCode === 200)  return resolve(!!body?.active)
-                return reject(this.fitbitAPIErrorListener(res.statusCode, token))
+                return resolve(!!body?.active)
             })
         })
     }
