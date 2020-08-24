@@ -16,7 +16,7 @@ export abstract class Default {
     public static readonly PORT_HTTP: number = 9000
     public static readonly PORT_HTTPS: number = 9001
     // 'https://api.swaggerhub.com/apis/haniot/ds-agent/v1/swagger.json'
-    public static readonly SWAGGER_URI: string = './ui/swagger/haniot-ds-agent-v1-swagger.json'
+    public static readonly SWAGGER_URI: string = 'https://api.swaggerhub.com/apis/haniot/ds-agent/v1/swagger.json'
     public static readonly LOGO_URI: string = 'https://i.imgur.com/O7PxGWQ.png'
 
     // MongoDb

@@ -112,12 +112,12 @@ export class App {
      */
     private setupSwaggerUI(): void {
         const options = {
-            // swaggerUrl: Default.SWAGGER_URI,
+            swaggerUrl: Default.SWAGGER_URI,
             customCss: '.swagger-ui .topbar { display: none }',
             customfavIcon: Default.LOGO_URI,
             customSiteTitle: `API Reference | ${Strings.APP.TITLE}`
         }
-        this.express.use('/v1/reference', swaggerUi.serve, swaggerUi.setup(require(Default.SWAGGER_URI), options))
+        this.express.use('/v1/reference', swaggerUi.serve, swaggerUi.setup({}, options))
     }
 
     /**
