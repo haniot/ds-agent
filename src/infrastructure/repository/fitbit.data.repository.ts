@@ -231,10 +231,12 @@ export class FitbitDataRepository implements IFitbitDataRepository {
             const parseWeight: Array<Weight> = this.parseWeightList(filterSyncWeights, userId)
             // Save and publish sync weight data
             if (parseWeight && parseWeight.length) {
-                this.manageResources(syncWeights, userId, ResourceType.BODY).then().catch()
                 this._eventBus
                     .publish(new WeightSyncEvent(new Date(), parseWeight), WeightSyncEvent.ROUTING_KEY)
-                    .then(() => this._logger.info(`Weight Measurements from ${userId} successful published!`))
+                    .then(() => {
+                        this._logger.info(`Weight Measurements from ${userId} successful published!`)
+                        this.manageResources(syncWeights, userId, ResourceType.BODY).then().catch()
+                    })
                     .catch(err => this._logger.error(`Error publishing weights: ${err.message}`))
             }
             return Promise.resolve(parseWeight)
@@ -257,10 +259,12 @@ export class FitbitDataRepository implements IFitbitDataRepository {
             const parseSleep: Array<Sleep> = await this.parseSleepList(filterSleep, userId)
             // Save and publish sync sleep data
             if (parseSleep && parseSleep.length) {
-                this.manageResources(syncSleep, userId, ResourceType.SLEEP).then().catch()
                 this._eventBus
                     .publish(new SleepSyncEvent(new Date(), parseSleep), SleepSyncEvent.ROUTING_KEY)
-                    .then(() => this._logger.info(`Sleep from ${userId} successful published!`))
+                    .then(() => {
+                        this._logger.info(`Sleep from ${userId} successful published!`)
+                        this.manageResources(syncSleep, userId, ResourceType.SLEEP).then().catch()
+                    })
                     .catch(err => this._logger.error(`Error publishing sleep: ${err.message}`))
             }
             return Promise.resolve(parseSleep)
@@ -283,10 +287,12 @@ export class FitbitDataRepository implements IFitbitDataRepository {
             const parseActivity: Array<PhysicalActivity> = await this.parsePhysicalActivityList(filterActivities, userId)
             // Save and publish sync activity data
             if (parseActivity && parseActivity.length) {
-                this.manageResources(syncActivities, userId, ResourceType.ACTIVITIES).then().catch()
                 this._eventBus
                     .publish(new PhysicalActivitySyncEvent(new Date(), parseActivity), PhysicalActivitySyncEvent.ROUTING_KEY)
-                    .then(() => this._logger.info(`Physical activities from ${userId} successful published!`))
+                    .then(() => {
+                        this._logger.info(`Physical activities from ${userId} successful published!`)
+                        this.manageResources(syncActivities, userId, ResourceType.ACTIVITIES).then().catch()
+                    })
                     .catch(err => this._logger.error(`Error publishing physical activities: ${err.message}`))
             }
             return Promise.resolve(parseActivity)
