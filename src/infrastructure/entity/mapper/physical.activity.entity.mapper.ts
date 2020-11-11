@@ -55,7 +55,7 @@ export class PhysicalActivityEntityMapper implements IEntityMapper<PhysicalActiv
     }
 
     private convertDistanceToMetter(distance: number, unit: string): number {
-        return unit === 'Kilometer' ? distance * 1000 : distance * 1609.344
+        return unit === 'Kilometer' ? Math.round(distance * 1000) : Math.round(distance * 1609.344)
     }
 
     public modelEntityToModel(item: PhysicalActivityEntity): PhysicalActivity {
