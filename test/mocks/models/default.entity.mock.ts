@@ -173,6 +173,24 @@ export abstract class DefaultEntityMock {
         provider: 'Fitbit'
     }
 
+    public static DEVICE: any = {
+        id: '5d7a9fc8d3f5bbb30e0d6a1d',
+        name: 'Default Device',
+        address: '50CE1D793EC5',
+        type: 'TRACKER',
+        last_sync: '2020-11-10T11:54:32.523Z',
+        patient_id: '5a62be07de34500146d9c544'
+    }
+
+    public static DEVICE_FITBIT: any = {
+        id: '1521352314',
+        deviceVersion: 'Inspire HR',
+        mac: '50CE1D793EC5',
+        type: 'TRACKER',
+        lastSyncTime: '2020-11-10T11:27:55.271',
+        patient_id: '5a62be07de34500146d9c544'
+    }
+
     public static SLEEP_PATTERN_SUMMARY_DATA: any = {
         count: 10,
         duration: 10000

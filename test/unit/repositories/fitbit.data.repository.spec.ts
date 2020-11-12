@@ -10,6 +10,7 @@ import { DefaultEntityMock } from '../../mocks/models/default.entity.mock'
 import { UserAuthData } from '../../../src/application/domain/model/user.auth.data'
 import { assert } from 'chai'
 import sinon from 'sinon'
+import { DeviceRepositoryMock } from '../../mocks/repositories/device.repository.mock'
 
 require('sinon-mongoose')
 
@@ -23,8 +24,10 @@ describe('Repositories: FitbitDataRepository', () => {
         new EntityMapperMock(),
         new EntityMapperMock(),
         new EntityMapperMock(),
+        new EntityMapperMock(),
         new FitbitClientRepositoryMock(),
         new ResourceRepositoryMock(),
+        new DeviceRepositoryMock(),
         new EventBusRabbitMQMock(),
         new CustomLoggerMock()
     )

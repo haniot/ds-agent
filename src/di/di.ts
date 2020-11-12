@@ -51,6 +51,15 @@ import { PhysicalActivityEntityMapper } from '../infrastructure/entity/mapper/ph
 import { Weight } from '../application/domain/model/weight'
 import { WeightEntity } from '../infrastructure/entity/weight.entity'
 import { WeightEntityMapper } from '../infrastructure/entity/mapper/weight.entity.mapper'
+import { Device } from '../application/domain/model/device'
+import { DeviceEntity } from '../infrastructure/entity/device.entity'
+import { DeviceEntityMapper } from '../infrastructure/entity/mapper/device.entity.mapper'
+import { UserFitbitDevicesController } from '../ui/controllers/user.fitbit.devices.controller'
+import { IDeviceService } from '../application/port/device.service.interface'
+import { DeviceService } from '../application/service/device.service'
+import { IDeviceRepository } from '../application/port/device.repository.interface'
+import { DeviceRepoModel } from '../infrastructure/database/schema/device.schema'
+import { DeviceRepository } from '../infrastructure/repository/device.repository'
 
 class IoC {
     private readonly _container: Container
@@ -90,10 +99,14 @@ class IoC {
             .to(UserFitbitAuthController).inSingletonScope()
         this._container.bind<UserFitbitSyncController>(Identifier.USER_FITBIT_SYNC_CONTROLLER)
             .to(UserFitbitSyncController).inSingletonScope()
+        this._container.bind<UserFitbitDevicesController>(Identifier.USER_FITBIT_DEVICES_CONTROLLER)
+            .to(UserFitbitDevicesController).inSingletonScope()
 
         // Services
         this.container.bind<IUserAuthDataService>(Identifier.USER_AUTH_DATA_SERVICE)
             .to(UserAuthDataService).inSingletonScope()
+        this.container.bind<IDeviceService>(Identifier.DEVICE_SERVICE)
+            .to(DeviceService).inSingletonScope()
 
         // Repositories
         this._container
@@ -108,10 +121,14 @@ class IoC {
         this._container
             .bind<IResourceRepository>(Identifier.RESOURCE_REPOSITORY)
             .to(ResourceRepository).inSingletonScope()
+        this._container
+            .bind<IDeviceRepository>(Identifier.DEVICE_REPOSITORY)
+            .to(DeviceRepository).inSingletonScope()
 
         // Models
         this._container.bind(Identifier.USER_AUTH_REPO_MODEL).toConstantValue(UserAuthRepoModel)
         this._container.bind(Identifier.RESOURCE_REPO_MODEL).toConstantValue(ResourceRepoModel)
+        this._container.bind(Identifier.DEVICE_REPO_MODEL).toConstantValue(DeviceRepoModel)
 
         // Mappers
         this.container
@@ -132,6 +149,9 @@ class IoC {
         this.container
             .bind<IEntityMapper<Weight, WeightEntity>>(Identifier.WEIGHT_ENTITY_MAPPER)
             .to(WeightEntityMapper).inSingletonScope()
+        this.container
+            .bind<IEntityMapper<Device, DeviceEntity>>(Identifier.DEVICE_ENTITY_MAPPER)
+            .to(DeviceEntityMapper).inSingletonScope()
 
         // Background Services
         this._container
