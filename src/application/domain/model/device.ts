@@ -14,7 +14,8 @@ export class Device extends Entity implements IJSONSerializable, IJSONDeserializ
     private _address?: string // Unique combination of letters and numbers used to identify the device.
     private _type?: string // String representing the type of device, according with Fitbit patterns.
     private _last_sync?: string // Date of last device sync in Fitbit in UTC format, according to ISO 8601.
-    private _patient_id!: string // Patient ID belonging to device.
+    private _manufacturer?: string // Device manufacturer.
+    private _user_id!: string // User ID belonging to device.
 
     constructor() {
         super()
@@ -52,12 +53,20 @@ export class Device extends Entity implements IJSONSerializable, IJSONDeserializ
         this._last_sync = value
     }
 
-    get patient_id(): string {
-        return this._patient_id
+    get manufacturer(): string | undefined {
+        return this._manufacturer
     }
 
-    set patient_id(value: string) {
-        this._patient_id = value
+    set manufacturer(value: string | undefined) {
+        this._manufacturer = value
+    }
+
+    get user_id(): string {
+        return this._user_id
+    }
+
+    set user_id(value: string) {
+        this._user_id = value
     }
 
     public fromJSON(json: any): Device {
@@ -82,7 +91,7 @@ export class Device extends Entity implements IJSONSerializable, IJSONDeserializ
             address: this.address,
             type: this.type,
             last_sync: this.last_sync,
-            patient_id: this.patient_id
+            user_id: this.user_id
         }
     }
 }

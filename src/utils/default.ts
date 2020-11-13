@@ -37,5 +37,9 @@ export abstract class Default {
     public static readonly SSL_CERT_PATH: string = '.certs/server.crt'
     public static readonly RABBITMQ_CA_PATH: string = '.certs/ca.crt'
 
+    // Tasks cron expressions.
     public static readonly EXPRESSION_AUTO_SYNC: string = '0 0 * * 0'
+    public static readonly EXPRESSION_INACTIVE_USERS: string = '0 */4 * * *'
+
+    public static readonly DAYS_INACTIVE_USERS: number = 7
 }

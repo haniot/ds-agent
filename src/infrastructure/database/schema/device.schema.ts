@@ -8,7 +8,8 @@ const deviceSchema = new Mongoose.Schema({
         address: String,
         type: String,
         last_sync: String,
-        patient_id: String
+        manufacturer: String,
+        user_id: String
     },
     {
         timestamps: { createdAt: 'created_at', updatedAt: false },

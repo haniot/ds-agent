@@ -61,7 +61,7 @@ describe('MODELS: Device', () => {
         context('when toJSON() is executed', () => {
             it('should return a JSON from a complete Device', () => {
                 const device: Device = new Device().fromJSON(deviceJSON)
-                device.patient_id = deviceJSON.patient_id
+                device.user_id = deviceJSON.user_id
                 const result: any = device.toJSON()
 
                 assert.propertyVal(result, 'id', deviceJSON.id)
@@ -69,7 +69,7 @@ describe('MODELS: Device', () => {
                 assert.propertyVal(result, 'address', deviceJSON.address)
                 assert.propertyVal(result, 'type', deviceJSON.type)
                 assert.propertyVal(result, 'last_sync', deviceJSON.last_sync)
-                assert.propertyVal(result, 'patient_id', deviceJSON.patient_id)
+                assert.propertyVal(result, 'user_id', deviceJSON.user_id)
             })
 
             it('should return a JSON with all attributes equal to undefined from an incomplete Device', () => {
@@ -80,7 +80,7 @@ describe('MODELS: Device', () => {
                 assert.isUndefined(result.address)
                 assert.isUndefined(result.type)
                 assert.isUndefined(result.last_sync)
-                assert.isUndefined(result.patient_id)
+                assert.isUndefined(result.user_id)
             })
         })
     })

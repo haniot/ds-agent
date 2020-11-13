@@ -32,9 +32,7 @@ import { WeightEntity } from '../entity/weight.entity'
 import { IntradayTimeSeriesSyncEvent } from '../../application/integration-event/event/intraday.time.series.sync.event'
 import { FitbitClientException } from '../../application/domain/exception/fitbit.client.exception'
 import { Fitbit } from '../../application/domain/model/fitbit'
-import { Device } from '../../application/domain/model/device'
-import { DeviceEntity } from '../entity/device.entity'
-import { IDeviceRepository } from '../../application/port/device.repository.interface'
+import { IFitbitDeviceRepository } from '../../application/port/fitbit.device.repository.interface'
 
 @injectable()
 export class FitbitDataRepository implements IFitbitDataRepository {
@@ -44,15 +42,14 @@ export class FitbitDataRepository implements IFitbitDataRepository {
         private readonly _userAuthDataEntityMapper: IEntityMapper<UserAuthData, UserAuthDataEntity>,
         @inject(Identifier.FITBIT_AUTH_DATA_ENTITY_MAPPER)
         private readonly _fitbitAuthEntityMapper: IEntityMapper<FitbitAuthData, FitbitAuthDataEntity>,
-        @inject(Identifier.SLEEP_ENTITY_MAPPER) readonly _sleepMapper: IEntityMapper<Sleep, SleepEntity>,
-        @inject(Identifier.WEIGHT_ENTITY_MAPPER) readonly _weightMapper: IEntityMapper<Weight, WeightEntity>,
+        @inject(Identifier.SLEEP_ENTITY_MAPPER) private readonly _sleepMapper: IEntityMapper<Sleep, SleepEntity>,
+        @inject(Identifier.WEIGHT_ENTITY_MAPPER) private readonly _weightMapper: IEntityMapper<Weight, WeightEntity>,
         @inject(Identifier.PHYSICAL_ACTIVITY_ENTITY_MAPPER)
-        readonly _activityMapper: IEntityMapper<PhysicalActivity, PhysicalActivity>,
-        @inject(Identifier.DEVICE_ENTITY_MAPPER) readonly _deviceMapper: IEntityMapper<Device, DeviceEntity>,
+        private readonly _activityMapper: IEntityMapper<PhysicalActivity, PhysicalActivity>,
         @inject(Identifier.FITBIT_CLIENT_REPOSITORY) private readonly _fitbitClientRepo: IFitbitClientRepository,
-        @inject(Identifier.RESOURCE_REPOSITORY) readonly _resourceRepo: IResourceRepository,
-        @inject(Identifier.DEVICE_REPOSITORY) readonly _deviceRepo: IDeviceRepository,
-        @inject(Identifier.RABBITMQ_EVENT_BUS) readonly _eventBus: IEventBus,
+        @inject(Identifier.RESOURCE_REPOSITORY) private readonly _resourceRepo: IResourceRepository,
+        @inject(Identifier.FITBIT_DEVICE_REPOSITORY) private readonly _fitbitDeviceRepo: IFitbitDeviceRepository,
+        @inject(Identifier.RABBITMQ_EVENT_BUS) private readonly _eventBus: IEventBus,
         @inject(Identifier.LOGGER) private readonly _logger: ILogger
     ) {
     }
@@ -130,6 +127,10 @@ export class FitbitDataRepository implements IFitbitDataRepository {
                 throw new RepositoryException('Invalid scope, cannot be empty.')
             }
             const scopes: Array<string> = data.scope!.split(' ')
+
+            // Sync Fitbit devices
+            this._fitbitDeviceRepo.syncAndParse(scopes, data.access_token!, userId).then().catch()
+
             // Sync all Fitbit data
             const promises: Array<Promise<any>> = [
                 this.syncAndParseWeight(scopes, data.access_token!, userId),
@@ -139,8 +140,7 @@ export class FitbitDataRepository implements IFitbitDataRepository {
                 this.syncAndParseIntradayTimeSeries(scopes, 'calories', data.access_token!, userId),
                 this.syncAndParseIntradayTimeSeries(scopes, 'distance', data.access_token!, userId),
                 this.syncAndParseMinutesActiveIntradayTimeSeries(scopes, data.access_token!, userId),
-                this.syncAndParseHeartRateIntradayTimeSeries(scopes, data.access_token!, userId),
-                this.syncAndParseDevices(scopes, data.access_token!, userId)
+                this.syncAndParseHeartRateIntradayTimeSeries(scopes, data.access_token!, userId)
             ]
             const results: Array<any> = await Promise.allSettled(promises)
 
@@ -422,22 +422,6 @@ export class FitbitDataRepository implements IFitbitDataRepository {
         }
     }
 
-    private async syncAndParseDevices(scopes: Array<string>, token: string, userId: string): Promise<Array<Device>> {
-        try {
-            // If the user does not have scopes for settings, returns an empty array
-            if (!(scopes.includes('rset'))) return Promise.resolve([])
-            // Sync device data
-            const syncDevices: Array<any> = await this.syncUserDevices(token)
-            // Parse device data
-            const parseDevice: Array<Device> = await this.parseDeviceList(syncDevices, userId)
-            // Manage device data
-            this.manageDevices(parseDevice, userId).then().catch()
-            return Promise.resolve(parseDevice)
-        } catch (err) {
-            return Promise.reject(err)
-        }
-    }
-
     private updateRefreshToken(userId: string, token: FitbitAuthData): Promise<UserAuthData> {
         const itemUp: any = this._fitbitAuthEntityMapper.transform(token)
         return new Promise<UserAuthData>((resolve, reject) => {
@@ -507,42 +491,6 @@ export class FitbitDataRepository implements IFitbitDataRepository {
                         provider: 'Fitbit'
                     }))
                     result.push(resource)
-                }
-            } catch (err) {
-                return reject(this.mongoDBErrorListener(err))
-            }
-            return resolve(result)
-        })
-    }
-
-    private async manageDevices(devices: Array<Device>, userId: string): Promise<void> {
-        try {
-            await this.cleanDeviceList(userId)
-            await this.saveDeviceList(devices)
-            return Promise.resolve()
-        } catch (err) {
-            this._logger.error(`Error at save devices: ${err.message}`)
-            return Promise.resolve()
-        }
-    }
-
-    private cleanDeviceList(userId: string): Promise<boolean> {
-        return new Promise<boolean>((resolve, reject) => {
-            this._deviceRepo
-                .removeByQuery(new Query().fromJSON({ filters: { patient_id: userId } }))
-                .then(res => resolve(res))
-                .catch(err => reject(this.mongoDBErrorListener(err)))
-        })
-    }
-
-    private saveDeviceList(devices: Array<Device>): Promise<Array<Device>> {
-        return new Promise<Array<Device>>(async (resolve, reject) => {
-            const result: Array<Device> = []
-            if (!devices || !devices.length) return resolve(result)
-            try {
-                for await (const item of devices) {
-                    const device: Device = await this._deviceRepo.create(item)
-                    result.push(device)
                 }
             } catch (err) {
                 return reject(this.mongoDBErrorListener(err))
@@ -688,15 +636,6 @@ export class FitbitDataRepository implements IFitbitDataRepository {
         })
     }
 
-    private async syncUserDevices(token: string): Promise<any> {
-        const path: string = `/devices.json`
-        return new Promise<any>((resolve, reject) => {
-            this._fitbitClientRepo.getDataFromPath(path, token)
-                .then(result => resolve(result))
-                .catch(err => reject(err))
-        })
-    }
-
     // Parsers
     private parseIntradayTimeSeriesResources(userId: string, resource: string, dataset: any): UserIntradayTimeSeries {
         const intraday_data: any = dataset[`activities-${resource}-intraday`]
@@ -782,11 +721,6 @@ export class FitbitDataRepository implements IFitbitDataRepository {
     private parseSleepList(sleep: Array<any>, userId: string): Array<Sleep> {
         if (!sleep || !sleep.length) return []
         return sleep.map(item => this._sleepMapper.transform({ ...item, patient_id: userId }))
-    }
-
-    private parseDeviceList(devices: Array<any>, userId: string): Array<Device> {
-        if (!devices || !devices.length) return []
-        return devices.map(item => this._deviceMapper.transform({ ...item, patient_id: userId }))
     }
 
     private mergeIntradayTimeSeriesValues(intradayOne: any, intradayTwo: any): any {

@@ -1,7 +1,6 @@
 import { IEntityMapper } from '../../port/entity.mapper.interface'
 import { Device } from '../../../application/domain/model/device'
 import { DeviceEntity } from '../device.entity'
-import moment from 'moment'
 import { injectable } from 'inversify'
 
 @injectable()
@@ -11,14 +10,12 @@ export class DeviceEntityMapper implements IEntityMapper<Device, DeviceEntity> {
         if (!json) return result
 
         if (json.id !== undefined) result.id = json.id
-        result.name = json.deviceVersion || json.name
-        result.address = json.mac || json.address
+        if (json.name !== undefined) result.name = json.name
+        if (json.address !== undefined) result.address = json.address
         if (json.type !== undefined) result.type = json.type
-        result.last_sync =
-            json.lastSyncTime !== undefined
-                ? moment(json.lastSyncTime).utc().format(`YYYY-MM-DDTHH:mm:ss.SSS[Z]`)
-                : json.last_sync
-        if (json.patient_id !== undefined) result.patient_id = json.patient_id
+        if (json.last_sync !== undefined) result.last_sync = json.last_sync
+        if (json.manufacturer !== undefined) result.manufacturer = json.manufacturer
+        if (json.user_id !== undefined) result.user_id = json.user_id
 
         return result
     }
@@ -35,7 +32,8 @@ export class DeviceEntityMapper implements IEntityMapper<Device, DeviceEntity> {
         if (item.address) result.address = item.address
         if (item.type) result.type = item.type
         if (item.last_sync) result.last_sync = item.last_sync
-        if (item.patient_id) result.patient_id = item.patient_id
+        if (item.manufacturer) result.manufacturer = item.manufacturer
+        if (item.user_id) result.user_id = item.user_id
 
         return result
     }

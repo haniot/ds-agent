@@ -1,25 +1,25 @@
 import { IService } from './service.interface'
-import { Device } from '../domain/model/device'
 import { IQuery } from './query.interface'
+import { FitbitDevice } from '../domain/model/fitbit.device'
 
 /**
- * Device service interface.
+ * FitbitDevice service interface.
  *
- * @extends {IService<Device>}
+ * @extends {IService<FitbitDevice>}
  */
-export interface IDeviceService extends IService<Device> {
+export interface IFitbitDeviceService extends IService<FitbitDevice> {
     /**
-     * List a user's devices.
+     * List a user's fitbit devices.
      *
      * @param userId User ID.
      * @param query Defines object to be used for queries.
-     * @return {Promise<Array<Device>>}
+     * @return {Promise<Array<FitbitDevice>>}
      * @throws {ValidationException | RepositoryException}
      */
-    getAllByUser(userId: string, query: IQuery): Promise<Array<Device>>
+    getAllByUser(userId: string, query: IQuery): Promise<Array<FitbitDevice>>
 
     /**
-     * Returns the total number of devices for a user.
+     * Returns the total number of fitbit devices for a user.
      *
      * @param query Defines object to be used for queries.
      * @return {Promise<number>}

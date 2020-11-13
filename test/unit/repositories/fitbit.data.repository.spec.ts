@@ -24,7 +24,6 @@ describe('Repositories: FitbitDataRepository', () => {
         new EntityMapperMock(),
         new EntityMapperMock(),
         new EntityMapperMock(),
-        new EntityMapperMock(),
         new FitbitClientRepositoryMock(),
         new ResourceRepositoryMock(),
         new DeviceRepositoryMock(),

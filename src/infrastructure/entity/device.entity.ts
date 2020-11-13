@@ -4,5 +4,6 @@ export class DeviceEntity {
     public address?: string
     public type?: string
     public last_sync?: string
-    public patient_id?: string
+    public manufacturer?: string
+    public user_id?: string
 }

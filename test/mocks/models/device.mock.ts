@@ -9,7 +9,8 @@ export class DeviceMock {
         device.address = '50CE1D793EC5'
         device.type = 'TRACKER'
         device.last_sync = new Date().toISOString()
-        device.patient_id = this.generateObjectId()
+        device.manufacturer = 'Default Manufacturer'
+        device.user_id = this.generateObjectId()
 
         return device
     }
