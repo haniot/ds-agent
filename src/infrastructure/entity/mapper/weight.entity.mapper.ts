@@ -15,7 +15,7 @@ export class WeightEntityMapper implements IEntityMapper<Weight, WeightEntity> {
         }
         if (json.weight !== undefined) result.value = json.weight
         if (json.fat !== undefined) result.body_fat = json.fat
-        if (json.patient_id !== undefined) result.patient_id = json.patient_id
+        if (json.user_id !== undefined) result.user_id = json.user_id
         result.unit = 'kg'
         return result
     }

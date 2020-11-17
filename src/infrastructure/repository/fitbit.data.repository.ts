@@ -183,7 +183,7 @@ export class FitbitDataRepository implements IFitbitDataRepository {
 
     public publishLastSync(userId: string, lastSync: string): void {
         const fitbit: Fitbit = new Fitbit().fromJSON({
-            patient_id: userId,
+            user_id: userId,
             last_sync: lastSync
         })
         this._eventBus
@@ -637,7 +637,7 @@ export class FitbitDataRepository implements IFitbitDataRepository {
             })
         }
         return new UserIntradayTimeSeries().fromJSON({
-            patient_id: userId,
+            user_id: userId,
             start_time: dataset_intraday.length ?
                 moment(date).format('YYYY-MM-DDT').concat(dataset_intraday[0].time) : undefined,
             end_time: dataset_intraday.length ?
@@ -660,7 +660,7 @@ export class FitbitDataRepository implements IFitbitDataRepository {
         const out_of_range = heart_rate_zone.filter(value => value.name === 'Out of Range')[0]
 
         return new UserIntradayTimeSeries().fromJSON({
-            patient_id: userId,
+            user_id: userId,
             start_time: dataset_intraday.length ?
                 moment(date).format('YYYY-MM-DDT').concat(dataset_intraday[0].time) : undefined,
             end_time: dataset_intraday.length ?
@@ -699,17 +699,17 @@ export class FitbitDataRepository implements IFitbitDataRepository {
 
     private parseWeightList(weights: Array<any>, userId: string): Array<Weight> {
         if (!weights || !weights.length) return []
-        return weights.map(item => this._weightMapper.transform({ ...item, patient_id: userId }))
+        return weights.map(item => this._weightMapper.transform({ ...item, user_id: userId }))
     }
 
     private parsePhysicalActivityList(activities: Array<any>, userId: string): Array<PhysicalActivity> {
         if (!activities || !activities.length) return []
-        return activities.map(item => this._activityMapper.transform({ ...item, patient_id: userId }))
+        return activities.map(item => this._activityMapper.transform({ ...item, user_id: userId }))
     }
 
     private parseSleepList(sleep: Array<any>, userId: string): Array<Sleep> {
         if (!sleep || !sleep.length) return []
-        return sleep.map(item => this._sleepMapper.transform({ ...item, patient_id: userId }))
+        return sleep.map(item => this._sleepMapper.transform({ ...item, user_id: userId }))
     }
 
     private mergeIntradayTimeSeriesValues(intradayOne: any, intradayTwo: any): any {

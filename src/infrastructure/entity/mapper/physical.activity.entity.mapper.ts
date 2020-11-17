@@ -19,9 +19,7 @@ export class PhysicalActivityEntityMapper implements IEntityMapper<PhysicalActiv
         if (json.duration !== undefined) result.duration = json.duration
         if (json.activityName !== undefined) result.name = json.activityName
         if (json.calories !== undefined) result.calories = json.calories
-        if (json.caloriesLink !== undefined) result.calories_link = json.caloriesLink
-        if (json.patient_id !== undefined) result.patient_id = json.patient_id
-        if (json.heartRateLink !== undefined) result.heart_rate_link = json.heartRateLink
+        if (json.user_id !== undefined) result.user_id = json.user_id
         if (json.steps !== undefined) result.steps = json.steps
         if (json.distance !== undefined && json.distanceUnit !== undefined) {
             result.distance = this.convertDistanceToMetter(json.distance, json.distanceUnit)

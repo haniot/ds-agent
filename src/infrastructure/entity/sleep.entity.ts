@@ -4,5 +4,5 @@ export class SleepEntity {
     public duration?: string
     public type?: string
     public pattern?: any
-    public patient_id?: string
+    public user_id?: string
 }

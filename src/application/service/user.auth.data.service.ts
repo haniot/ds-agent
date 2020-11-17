@@ -99,16 +99,16 @@ export class UserAuthDataService implements IUserAuthDataService {
     public async revokeFitbitAccessToken(userId: string): Promise<void> {
         // Anonymous function used to publish revoke event
         const fitbit: Fitbit = new Fitbit().fromJSON({
-            patient_id: userId,
+            user_id: userId,
             timestamp: new Date()
         })
 
         const pubRevokeEvent = () => {
             this._eventBus
                 .publish(new FitbitRevokeEvent(new Date(), fitbit), FitbitRevokeEvent.ROUTING_KEY)
-                .then(() => this._logger.info(`Fitbit revoke event for patient ${userId} successfully published!`))
+                .then(() => this._logger.info(`Fitbit revoke event for user ${userId} successfully published!`))
                 .catch((err) => this._logger.error('There was an error publishing Fitbit' +
-                    `revoke event for patient ${userId}. ${err.message}`))
+                    `revoke event for user ${userId}. ${err.message}`))
         }
         try {
             ObjectIdValidator.validate(userId)
@@ -230,7 +230,7 @@ export class UserAuthDataService implements IUserAuthDataService {
     */
     private publishFitbitTokenGranted(userId: string): void {
         const fitbit: Fitbit = new Fitbit().fromJSON({
-            patient_id: userId,
+            user_id: userId,
             timestamp: new Date()
         })
         this._eventBus
@@ -252,7 +252,7 @@ export class UserAuthDataService implements IUserAuthDataService {
    */
     private publishFitbitAuthError(error: any, userId: string): void {
         const fitbit: Fitbit = new Fitbit().fromJSON({
-            patient_id: userId,
+            user_id: userId,
             error: this.manageFitbitAuthError(error)
         })
 

@@ -13,7 +13,7 @@ export class Activity extends Entity implements IJSONSerializable, IJSONDeserial
     private _start_time?: string // PhysicalActivity start time according to the UTC.
     private _end_time?: string // PhysicalActivity end time according to the UTC.
     private _duration?: number // Total time in milliseconds spent in the activity.
-    private _patient_id!: string // Child ID belonging to activity.
+    private _user_id!: string // User ID belonging to activity.
 
     constructor() {
         super()
@@ -43,12 +43,12 @@ export class Activity extends Entity implements IJSONSerializable, IJSONDeserial
         this._duration = value
     }
 
-    get patient_id(): string {
-        return this._patient_id
+    get user_id(): string {
+        return this._user_id
     }
 
-    set patient_id(value: string) {
-        this._patient_id = value
+    set user_id(value: string) {
+        this._user_id = value
     }
 
     public fromJSON(json: any): Activity {
@@ -61,7 +61,7 @@ export class Activity extends Entity implements IJSONSerializable, IJSONDeserial
         if (json.start_time !== undefined) this.start_time = json.start_time
         if (json.end_time !== undefined) this.end_time = json.end_time
         if (json.duration !== undefined) this.duration = json.duration
-        if (json.patient_id !== undefined) this.patient_id = json.patient_id
+        if (json.user_id !== undefined) this.user_id = json.user_id
 
         return this
     }
@@ -72,7 +72,7 @@ export class Activity extends Entity implements IJSONSerializable, IJSONDeserial
             start_time: this.start_time ? this.start_time : this.start_time,
             end_time: this.end_time ? this.end_time : this.end_time,
             duration: this.duration,
-            patient_id: this.patient_id
+            user_id: this.user_id
         }
     }
 }
