@@ -7,7 +7,7 @@ import { HeartRateZone } from './heart.rate.zone'
 import { TimeSeriesItem } from './time.series.item'
 
 export class UserIntradayTimeSeries implements IJSONSerializable, IJSONDeserializable<UserIntradayTimeSeries> {
-    private _patient_id?: string
+    private _user_id?: string
     private _start_time?: string
     private _end_time?: string
     private _interval?: string
@@ -15,12 +15,12 @@ export class UserIntradayTimeSeries implements IJSONSerializable, IJSONDeseriali
     private _zones?: HeartRateZone
     private _data_set?: Array<TimeSeries | TimeSeriesHeartRate>
 
-    get patient_id(): string | undefined {
-        return this._patient_id
+    get user_id(): string | undefined {
+        return this._user_id
     }
 
-    set patient_id(value: string | undefined) {
-        this._patient_id = value
+    set user_id(value: string | undefined) {
+        this._user_id = value
     }
 
     get start_time(): string | undefined {
@@ -77,7 +77,7 @@ export class UserIntradayTimeSeries implements IJSONSerializable, IJSONDeseriali
             json = JSON.parse(json)
         }
 
-        if (json.patient_id !== undefined) this.patient_id = json.patient_id
+        if (json.user_id !== undefined) this.user_id = json.user_id
         if (json.start_time !== undefined) this.start_time = json.start_time
         if (json.end_time !== undefined) this.end_time = json.end_time
         if (json.interval !== undefined) this.interval = json.interval
@@ -94,7 +94,7 @@ export class UserIntradayTimeSeries implements IJSONSerializable, IJSONDeseriali
 
     public toJSON(): any {
         return {
-            patient_id: this.patient_id,
+            user_id: this.user_id,
             start_time: this.start_time,
             end_time: this.end_time,
             interval: this.interval,
