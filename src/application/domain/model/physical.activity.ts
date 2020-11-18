@@ -17,8 +17,6 @@ export class PhysicalActivity extends Activity implements IJSONSerializable, IJS
     private _steps?: number // Number of steps taken during the physical physicalactivity.
     private _distance?: number // Distance traveled during physical activity in meters.
     private _levels?: Array<PhysicalActivityLevel> // PhysicalActivity levels (sedentary, light, fair or very).
-    private _calories_link?: string // Link to calories resource
-    private _heart_rate_link?: string // Link to Heart Rate resource
     private _heart_rate_average?: number // Average from Heart Rate in Physical Activity
     private _heart_rate_zones?: PhysicalActivityHeartRateZone // PhysicalActivity heart rate
 
@@ -74,22 +72,6 @@ export class PhysicalActivity extends Activity implements IJSONSerializable, IJS
         this._heart_rate_zones = value
     }
 
-    get calories_link(): string | undefined {
-        return this._calories_link
-    }
-
-    set calories_link(value: string | undefined) {
-        this._calories_link = value
-    }
-
-    get heart_rate_link(): string | undefined {
-        return this._heart_rate_link
-    }
-
-    set heart_rate_link(value: string | undefined) {
-        this._heart_rate_link = value
-    }
-
     get heart_rate_average(): number | undefined {
         return this._heart_rate_average
     }
@@ -114,8 +96,6 @@ export class PhysicalActivity extends Activity implements IJSONSerializable, IJS
         }
         if (json.heart_rate_zones) this.heart_rate_zones = new PhysicalActivityHeartRateZone().fromJSON(json.heart_rate_zones)
         if (json.heart_rate_average !== undefined) this.heart_rate_average = json.heart_rate_average
-        if (json.calories_link !== undefined) this.calories_link = json.calories_link
-        if (json.heart_rate_link !== undefined) this.heart_rate_link = json.heart_rate_link
 
         return this
     }
@@ -130,29 +110,8 @@ export class PhysicalActivity extends Activity implements IJSONSerializable, IJS
                 distance: this.distance,
                 levels: this.levels ? this.levels.map(item => item.toJSON()) : this.levels,
                 heart_rate_zones: this.heart_rate_zones ? this.heart_rate_zones.toJSON() : this.heart_rate_zones,
-                heart_rate_average: this.heart_rate_average,
-                calories_link: this.buildLink('calories'),
-                heart_rate_link: this.buildLink('heart_rate')
+                heart_rate_average: this.heart_rate_average
             }
         }
-    }
-
-    private buildLink(type: string): string {
-        if (!super.patient_id || !super.start_time || !super.end_time) return ''
-        const startDate: string = super.start_time?.split('T')[0]
-        const endDate: string = super.end_time?.split('T')[0]
-
-        const startTimestamp: Date = new Date(super.start_time)
-        const endTimestamp: Date = new Date(super.end_time)
-        const startTime = `${startTimestamp.getHours().toString().padStart(2, '0')}:`
-            .concat(`${startTimestamp.getMinutes().toString().padStart(2, '0')}:`)
-            .concat(`${startTimestamp.getSeconds().toString().padStart(2, '0')}`)
-        const endTime = `${endTimestamp.getHours().toString().padStart(2, '0')}:`
-            .concat(`${endTimestamp.getMinutes().toString().padStart(2, '0')}:`)
-            .concat(`${endTimestamp.getSeconds().toString().padStart(2, '0')}`)
-
-        return `/v1/patients/${super.patient_id}/${type}/date/${startDate}/${endDate}`
-            .concat(`/time/${startTime}/${endTime}/interval/${type === 'heart_rate' ? '1s' : '1m'}/timeseries`)
-
     }
 }

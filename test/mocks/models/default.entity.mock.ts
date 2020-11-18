@@ -11,7 +11,7 @@ export abstract class DefaultEntityMock {
         start_time: '2019-09-12T13:36:49.741Z',
         end_time: '2019-09-12T13:06:49.741Z',
         duration: 1800000,
-        patient_id: '5d7a4a95c292db05e4f765a8'
+        user_id: '5d7a4a95c292db05e4f765a8'
     }
 
     public static PAYLOAD: any = {
@@ -62,7 +62,7 @@ export abstract class DefaultEntityMock {
         date: '2019-09-12',
         value: 2,
         type: LogType.CALORIES,
-        patient_id: '5d7a4a95c292db05e4f765a8'
+        user_id: '5d7a4a95c292db05e4f765a8'
     }
 
     public static USER_LOG: any = {
@@ -79,7 +79,7 @@ export abstract class DefaultEntityMock {
         timestamp: '2019-09-12T13:36:49.741Z',
         value: 0,
         unit: 'unit',
-        patient_id: '5d7a4a95c292db05e4f765a8'
+        user_id: '5d7a4a95c292db05e4f765a8'
     }
 
     public static BODY_FAT: any = {
@@ -132,10 +132,6 @@ export abstract class DefaultEntityMock {
         distance: 1000,
         levels: [DefaultEntityMock.PHYSICAL_ACTIVITY_LEVEL],
         heart_rate_average: [undefined],
-        calories_link: DefaultEntityMock.buildLink('calories', DefaultEntityMock.ACTIVITY.patient_id,
-            DefaultEntityMock.ACTIVITY.start_time, DefaultEntityMock.ACTIVITY.end_time),
-        heart_rate_link: DefaultEntityMock.buildLink('heart_rate', DefaultEntityMock.ACTIVITY.patient_id,
-            DefaultEntityMock.ACTIVITY.start_time, DefaultEntityMock.ACTIVITY.end_time),
         heart_rate_zones: {
             cardio: {
                 calories: [undefined],
@@ -227,7 +223,7 @@ export abstract class DefaultEntityMock {
         invalid_token: '5d9270f07d06332a5541d8aa',
         client_error: '5d927225f8f8b947e0766bb6',
         any_fitbit_error: '5d9272ba888cb686ed99d952',
-        patient_id: '5d7a4a95c292db05e4f765a8'
+        user_id: '5d7a4a95c292db05e4f765a8'
     }
 
     public static FITBIT_USER_IDS: any = {
@@ -262,24 +258,5 @@ export abstract class DefaultEntityMock {
             steps: [undefined]
         },
         user_id: '5d7a4a95c292db05e4f765a8'
-    }
-
-    private static buildLink(type: string, patientId: string, startTime: string, endTime: string): string {
-        if (!patientId || !startTime || !endTime) return ''
-        const startDate: string = startTime.split('T')[0]
-        const endDate: string = endTime.split('T')[0]
-
-        const startTimestamp: Date = new Date(startTime)
-        const endTimestamp: Date = new Date(endTime)
-        const _startTime = `${startTimestamp.getHours().toString().padStart(2, '0')}:`
-            .concat(`${startTimestamp.getMinutes().toString().padStart(2, '0')}:`)
-            .concat(`${startTimestamp.getSeconds().toString().padStart(2, '0')}`)
-        const _endTime = `${endTimestamp.getHours().toString().padStart(2, '0')}:`
-            .concat(`${endTimestamp.getMinutes().toString().padStart(2, '0')}:`)
-            .concat(`${endTimestamp.getSeconds().toString().padStart(2, '0')}`)
-
-        return `/v1/patients/${patientId}/${type}/date/${startDate}/${endDate}`
-            .concat(`/time/${_startTime}/${_endTime}/interval/${type === 'heart_rate' ? '1s' : '1m'}/timeseries`)
-
     }
 }

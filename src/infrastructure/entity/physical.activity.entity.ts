@@ -5,12 +5,10 @@ export class PhysicalActivityEntity {
     public duration?: number
     public name?: string
     public calories?: number
-    public calories_link?: string
-    public heart_rate_link?: string
     public steps?: string
     public distance?: number
     public levels?: any
     public heart_rate_average?: number
     public heart_rate_zones?: any
-    public patient_id?: string
+    public user_id?: string
 }

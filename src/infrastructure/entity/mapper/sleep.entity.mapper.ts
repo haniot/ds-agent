@@ -31,7 +31,7 @@ export class SleepEntityMapper implements IEntityMapper<Sleep, SleepEntity> {
                 summary: this.getSleepSummary(json.levels.summary)
             })
         }
-        if (json.patient_id !== undefined) result.patient_id = json.patient_id
+        if (json.user_id !== undefined) result.user_id = json.user_id
         return result
     }
 

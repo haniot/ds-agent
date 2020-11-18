@@ -4,5 +4,5 @@ export class WeightEntity {
     public value?: number
     public unit?: string
     public body_fat?: number
-    public patient_id?: string
+    public user_id?: string
 }
