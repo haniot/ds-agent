@@ -15,10 +15,10 @@ Microservice responsible for data synchronization of FitBit platform with HANIoT
 - Fitbit access token revocation.
  
 ## Prerequisites
-- [Node 12.0.0+](https://nodejs.org/en/download/)
+- [Node 13.0.0+](https://nodejs.org/en/download/)
 - [ConnectionMongodb Server 4.0.0+](https://www.mongodb.com/download-center/community)
 - [Redis Server 5.0.0+](https://redis.io/download)
-- [RabbitMQ 3.7.0+](https://www.rabbitmq.com/download.html)
+- [RabbitMQ 3.8.0+](https://www.rabbitmq.com/download.html)
 
 ---
 
