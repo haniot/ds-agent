@@ -125,17 +125,15 @@ export class UserAuthDataService implements IUserAuthDataService {
             // 2. Check if token is expired.
             const now: number = moment().add(5, 'minute').unix()
             if (now > authData.fitbit?.expires_in!) {
-                const newAuthData: FitbitAuthData =
-                    await this._fitbitAuthDataRepo
-                        .refreshToken(userId, authData.fitbit.access_token, authData.fitbit.refresh_token!)
-                authData.fitbit = newAuthData
+                authData.fitbit = await this._fitbitAuthDataRepo
+                    .refreshToken(userId, authData.fitbit.access_token, authData.fitbit.refresh_token!)
             }
 
-            // 3. Revokes Fitbit access token.
-            await this._fitbitAuthDataRepo.revokeToken(authData.fitbit.access_token!)
+            // 3. Remove Fitbit authorization data from local database.
+            await this._fitbitAuthDataRepo.removeFitbitAuthData(userId)
 
-            // 4. Remove Fitbit authorization data from local database.
-            this._fitbitAuthDataRepo.removeFitbitAuthData(userId).then().catch()
+            // 4. Revokes Fitbit access token.
+            this._fitbitAuthDataRepo.revokeToken(authData.fitbit.access_token!).then().catch()
 
             // We can treat revoke as a success
             pubRevokeEvent()
@@ -145,8 +143,8 @@ export class UserAuthDataService implements IUserAuthDataService {
             if (err instanceof ValidationException || err instanceof RepositoryException) {
                 return Promise.reject(err)
             }
-            // If the access token or the refresh token is invalid, remove the fitbit auth data form user
-            if (err.type && ['invalid_token', 'invalid_grant'].includes(err.type)) {
+            // If the Fitbit credentials, access token or refresh token are invalid, remove the fitbit auth data from user
+            if (err.type && ['invalid_client', 'invalid_token', 'invalid_grant'].includes(err.type)) {
                 await this._fitbitAuthDataRepo.removeFitbitAuthData(userId)
             }
             // We can treat revoke as a success

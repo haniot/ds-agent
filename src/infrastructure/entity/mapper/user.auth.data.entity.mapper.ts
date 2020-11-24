@@ -31,6 +31,7 @@ export class UserAuthDataEntityMapper implements IEntityMapper<UserAuthData, Use
 
         if (!json) return result
         if (json.id !== undefined) result.id = json.id
+        if (json.updated_at !== undefined) result.updated_at = json.updated_at
         if (json.user_id !== undefined) result.user_id = json.user_id
         if (json.fitbit !== undefined) result.fitbit = new FitbitAuthData().fromJSON(JsonUtils.cleanObject(json.fitbit))
 

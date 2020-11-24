@@ -13,6 +13,10 @@ export abstract class Strings {
         APP_DESCRIPTION: 'Microservice responsible for data synchronization of FitBit platform with HANIoT platform.'
     }
 
+    public static readonly USER: any = {
+        PARAM_ID_NOT_VALID_FORMAT: 'Parameter {user_id} is not in valid format!'
+    }
+
     public static readonly PARAMETERS: any = {
         COULD_NOT_BE_UPDATED: 'This parameter could not be updated!'
     }

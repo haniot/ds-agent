@@ -32,6 +32,7 @@ import { WeightEntity } from '../entity/weight.entity'
 import { IntradayTimeSeriesSyncEvent } from '../../application/integration-event/event/intraday.time.series.sync.event'
 import { FitbitClientException } from '../../application/domain/exception/fitbit.client.exception'
 import { Fitbit } from '../../application/domain/model/fitbit'
+import { IFitbitDeviceRepository } from '../../application/port/fitbit.device.repository.interface'
 
 @injectable()
 export class FitbitDataRepository implements IFitbitDataRepository {
@@ -41,13 +42,14 @@ export class FitbitDataRepository implements IFitbitDataRepository {
         private readonly _userAuthDataEntityMapper: IEntityMapper<UserAuthData, UserAuthDataEntity>,
         @inject(Identifier.FITBIT_AUTH_DATA_ENTITY_MAPPER)
         private readonly _fitbitAuthEntityMapper: IEntityMapper<FitbitAuthData, FitbitAuthDataEntity>,
-        @inject(Identifier.SLEEP_ENTITY_MAPPER) readonly _sleepMapper: IEntityMapper<Sleep, SleepEntity>,
-        @inject(Identifier.WEIGHT_ENTITY_MAPPER) readonly _weightMapper: IEntityMapper<Weight, WeightEntity>,
+        @inject(Identifier.SLEEP_ENTITY_MAPPER) private readonly _sleepMapper: IEntityMapper<Sleep, SleepEntity>,
+        @inject(Identifier.WEIGHT_ENTITY_MAPPER) private readonly _weightMapper: IEntityMapper<Weight, WeightEntity>,
         @inject(Identifier.PHYSICAL_ACTIVITY_ENTITY_MAPPER)
-        readonly _activityMapper: IEntityMapper<PhysicalActivity, PhysicalActivity>,
+        private readonly _activityMapper: IEntityMapper<PhysicalActivity, PhysicalActivity>,
         @inject(Identifier.FITBIT_CLIENT_REPOSITORY) private readonly _fitbitClientRepo: IFitbitClientRepository,
-        @inject(Identifier.RESOURCE_REPOSITORY) readonly _resourceRepo: IResourceRepository,
-        @inject(Identifier.RABBITMQ_EVENT_BUS) readonly _eventBus: IEventBus,
+        @inject(Identifier.RESOURCE_REPOSITORY) private readonly _resourceRepo: IResourceRepository,
+        @inject(Identifier.FITBIT_DEVICE_REPOSITORY) private readonly _fitbitDeviceRepo: IFitbitDeviceRepository,
+        @inject(Identifier.RABBITMQ_EVENT_BUS) private readonly _eventBus: IEventBus,
         @inject(Identifier.LOGGER) private readonly _logger: ILogger
     ) {
     }
@@ -125,6 +127,10 @@ export class FitbitDataRepository implements IFitbitDataRepository {
                 throw new RepositoryException('Invalid scope, cannot be empty.')
             }
             const scopes: Array<string> = data.scope!.split(' ')
+
+            // Sync Fitbit devices
+            this._fitbitDeviceRepo.syncAndParse(scopes, data.access_token!, userId).then().catch()
+
             // Sync all Fitbit data
             const promises: Array<Promise<any>> = [
                 this.syncAndParseWeight(scopes, data.access_token!, userId),
@@ -435,7 +441,12 @@ export class FitbitDataRepository implements IFitbitDataRepository {
             const resources: Array<any> = []
             if (!data || !data.length) return Promise.resolve(resources)
             for await(const item of data) {
-                const query: Query = new Query().fromJSON({ filters: { 'resource.logId': item.logId, 'user_id': userId } })
+                const query: Query = new Query().fromJSON({
+                    filters: {
+                        'resource.logId': item.logId,
+                        'user_id': userId
+                    }
+                })
                 if (type === ResourceType.BODY) query.addFilter({ 'resource.weight': item.weight })
                 const exists: boolean = await this._resourceRepo.checkExists(query)
                 if (!exists) resources.push(item)
@@ -444,15 +455,6 @@ export class FitbitDataRepository implements IFitbitDataRepository {
         } catch (err) {
             return await Promise.reject(err)
         }
-    }
-
-    private cleanResourceList(userId, type): Promise<boolean> {
-        return new Promise<boolean>((resolve, reject) => {
-            this._resourceRepo
-                .deleteByQuery(new Query().fromJSON({ filters: { user_id: userId, type } }))
-                .then(res => resolve(res))
-                .catch(err => reject(this.mongoDBErrorListener(err)))
-        })
     }
 
     private async manageResources(resources: Array<any>, userId: string, type: string): Promise<void> {
@@ -464,6 +466,15 @@ export class FitbitDataRepository implements IFitbitDataRepository {
             this._logger.error(`Error at save ${type} logs: ${err.message}`)
             return Promise.resolve()
         }
+    }
+
+    private cleanResourceList(userId, type): Promise<boolean> {
+        return new Promise<boolean>((resolve, reject) => {
+            this._resourceRepo
+                .deleteByQuery(new Query().fromJSON({ filters: { user_id: userId, type } }))
+                .then(res => resolve(res))
+                .catch(err => reject(this.mongoDBErrorListener(err)))
+        })
     }
 
     private saveResourceList(resources: Array<any>, userId: string, type: string): Promise<Array<Resource>> {
