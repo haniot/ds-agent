@@ -14,6 +14,7 @@ import { Default } from '../utils/default'
 @injectable()
 export class BackgroundService {
     private _inactiveUsersTask: IBackgroundTask = new InactiveUsersTask(
+        this._eventBus,
         DIContainer.get<IUserAuthDataService>(Identifier.USER_AUTH_DATA_SERVICE),
         DIContainer.get<IFitbitDeviceService>(Identifier.FITBIT_DEVICE_SERVICE),
         this._logger,

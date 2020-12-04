@@ -42,5 +42,5 @@ export abstract class Default {
     public static readonly EXPRESSION_INACTIVE_USERS: string = '0 * * * *'
 
     // Number of days of Inactive users tasks.
-    public static readonly DAYS_INACTIVE_USERS: number = 7
+    public static readonly DAYS_INACTIVE_USERS: number = 14
 }

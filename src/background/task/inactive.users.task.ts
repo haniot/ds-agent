@@ -9,6 +9,11 @@ import { UserAuthData } from '../../application/domain/model/user.auth.data'
 import { IFitbitDeviceService } from '../../application/port/fitbit.device.service.interface'
 import { Device } from '../../application/domain/model/device'
 import moment from 'moment'
+import { Fitbit } from '../../application/domain/model/fitbit'
+import { FitbitNoDeviceEvent } from '../../application/integration-event/event/fitbit.no.device.event'
+import { FitbitInactiveEvent } from '../../application/integration-event/event/fitbit.inactive.event'
+import { IEventBus } from '../../infrastructure/port/event.bus.interface'
+import { IQuery } from '../../application/port/query.interface'
 
 /**
  * Task responsible for identifying inactive users and invalidating them.
@@ -18,6 +23,7 @@ export class InactiveUsersTask implements IBackgroundTask {
     private schedule: any
 
     constructor(
+        @inject(Identifier.RABBITMQ_EVENT_BUS) private readonly _eventBus: IEventBus,
         @inject(Identifier.USER_AUTH_DATA_SERVICE) private readonly _userAuthDataService: IUserAuthDataService,
         @inject(Identifier.FITBIT_DEVICE_SERVICE) private readonly _deviceService: IFitbitDeviceService,
         @inject(Identifier.LOGGER) private readonly _logger: ILogger,
@@ -50,8 +56,8 @@ export class InactiveUsersTask implements IBackgroundTask {
 
     private async findInactiveUsers(): Promise<void> {
         try {
-            const queryUsers = new Query()
-            queryUsers.filters = { 'fitbit.status': 'valid_token' }
+            const queryUsers: IQuery = new Query()
+            queryUsers.addFilter({ 'fitbit.status': 'valid_token' })
 
             const userAuthDataArr: Array<UserAuthData> = await this._userAuthDataService.getAll(queryUsers)
             if (userAuthDataArr.length) {
@@ -60,7 +66,7 @@ export class InactiveUsersTask implements IBackgroundTask {
                     const userId = user.user_id!
 
                     // Build query for devices.
-                    const queryDevices = new Query()
+                    const queryDevices: IQuery = new Query()
                     queryDevices.ordination.set('last_sync', -1)
                     queryDevices.pagination.limit = Number.MAX_SAFE_INTEGER
                     queryDevices.addFilter({ user_id: userId })
@@ -70,27 +76,51 @@ export class InactiveUsersTask implements IBackgroundTask {
                     // Goal 1.
                     let daysDiff = moment().diff(moment(user.updated_at), 'days')
                     if (!devices.length) {
-                        if (daysDiff >= this.daysInactive) {
-                            this._logger.info(`GOAL 1: The user with id: ${userId} has no active Fitbit devices. Days Diff: ${daysDiff}`)
+                        // Publish FitbitNoDeviceEvent
+                        this._pubNoDeviceEvent(userId)
 
+                        if (daysDiff >= this.daysInactive) {
                             // Revoke User's Fitbit access
                             await this._userAuthDataService.revokeFitbitAccessToken(userId)
-                            // TODO NOTIFICATION (1)
+
+                            // Publish FitbitInactiveEvent
+                            this._pubInactiveEvent(userId)
                         }
+
                         continue
                     }
                     // Goal 2.
                     daysDiff = moment().diff(moment(devices[0].last_sync), 'days')
                     if (daysDiff >= this.daysInactive) {
-                        this._logger.info(`GOAL 2: The user with id: ${userId} has no active Fitbit devices. Days Diff: ${daysDiff}`)
-
                         await this._userAuthDataService.revokeFitbitAccessToken(userId)
-                        // TODO NOTIFICATION (2)
+                        this._pubInactiveEvent(userId)
                     }
                 }
             }
         } catch (err) {
             this._logger.error(`An error occurred while trying to retrieve Users Fitbit data. ${err.message}`)
         }
+    }
+
+    private _pubNoDeviceEvent(userId: string): void {
+        const fitbit: Fitbit = new Fitbit().fromJSON({ user_id: userId })
+
+        this._eventBus
+            .publish(new FitbitNoDeviceEvent(new Date(), fitbit), FitbitNoDeviceEvent.ROUTING_KEY)
+            .then(() => this._logger.info(`FitbitNoDeviceEvent for user with ID ${userId} ` +
+                'successfully published!'))
+            .catch(err => this._logger.error('An error occurred while publishing ' +
+                `FitbitNoDeviceEvent for user with ID ${userId}. ${err.message}`))
+    }
+
+    private _pubInactiveEvent(userId: string): void {
+        const fitbit: Fitbit = new Fitbit().fromJSON({ user_id: userId })
+
+        this._eventBus
+            .publish(new FitbitInactiveEvent(new Date(), fitbit), FitbitInactiveEvent.ROUTING_KEY)
+            .then(() => this._logger.info(`FitbitInactiveEvent for user with ID ${userId} ` +
+                'successfully published!'))
+            .catch(err => this._logger.error('An error occurred while publishing ' +
+                `FitbitInactiveEvent for user with ID ${userId}. ${err.message}`))
     }
 }

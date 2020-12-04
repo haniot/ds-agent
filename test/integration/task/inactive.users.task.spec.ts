@@ -16,7 +16,9 @@ import { UserAuthData } from '../../../src/application/domain/model/user.auth.da
 import { FitbitDeviceMock } from '../../mocks/models/fitbit.device.mock'
 import { UserAuthDataMock } from '../../mocks/models/user.auth.data.mock'
 import { UserAuthRepoModel } from '../../../src/infrastructure/database/schema/oauth.data.schema'
+import { IEventBus } from '../../../src/infrastructure/port/event.bus.interface'
 
+const eventBus: IEventBus = DIContainer.get(Identifier.RABBITMQ_EVENT_BUS)
 const dbConnection: IConnectionDB = DIContainer.get(Identifier.MONGODB_CONNECTION)
 const userAuthDataService: IUserAuthDataService = DIContainer.get(Identifier.USER_AUTH_DATA_SERVICE)
 const userAuthDataRepository: IUserAuthDataRepository = DIContainer.get(Identifier.USER_AUTH_DATA_REPOSITORY)
@@ -79,7 +81,7 @@ describe('INACTIVE USERS TASK', () => {
             it('should not do anything to the user because the device is active', async () => {
                 try {
                     const inactiveUsersTask: IBackgroundTask =
-                        new InactiveUsersTask(userAuthDataService, fitbitDeviceService, logger, 7)
+                        new InactiveUsersTask(eventBus, userAuthDataService, fitbitDeviceService, logger, 7)
 
                     await inactiveUsersTask.run()
 
@@ -127,7 +129,7 @@ describe('INACTIVE USERS TASK', () => {
             it('should revoke the user\'s Fitbit access', async () => {
                 try {
                     const inactiveUsersTask: IBackgroundTask =
-                        new InactiveUsersTask(userAuthDataService, fitbitDeviceService, logger, 7)
+                        new InactiveUsersTask(eventBus, userAuthDataService, fitbitDeviceService, logger, 7)
 
                     await inactiveUsersTask.run()
 
@@ -167,7 +169,7 @@ describe('INACTIVE USERS TASK', () => {
             it('should not do anything to the user because he has no Devices', async () => {
                 try {
                     const inactiveUsersTask: IBackgroundTask =
-                        new InactiveUsersTask(userAuthDataService, fitbitDeviceService, logger, 7)
+                        new InactiveUsersTask(eventBus, userAuthDataService, fitbitDeviceService, logger, 7)
 
                     await inactiveUsersTask.run()
 
@@ -202,7 +204,7 @@ describe('INACTIVE USERS TASK', () => {
             it('the task should be executed normally', async () => {
                 try {
                     const inactiveUsersTask: IBackgroundTask =
-                        new InactiveUsersTask(userAuthDataService, fitbitDeviceService, logger, 7)
+                        new InactiveUsersTask(eventBus, userAuthDataService, fitbitDeviceService, logger, 7)
 
                     await inactiveUsersTask.run()
 
