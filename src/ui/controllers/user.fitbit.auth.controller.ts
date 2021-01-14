@@ -30,15 +30,13 @@ export class UserFitbitAuthController {
      */
     @httpPost('/')
     public async saveAuthData(@request() req: Request, @response() res: Response): Promise<Response> {
-        const filters: any = req.query.filters
         try {
             const userAuth: UserAuthData = new UserAuthData().fromJSON({
                 user_id: req.params.user_id,
                 fitbit: {
                     access_token: req.body.access_token,
                     refresh_token: req.body.refresh_token,
-                    token_type: 'Bearer',
-                    last_sync: filters.last_sync
+                    token_type: 'Bearer'
                 }
             })
             await this._userAuthDataService.add(userAuth)
@@ -57,7 +55,7 @@ export class UserFitbitAuthController {
     @httpGet('/')
     public async getFitbitAuthData(@request() req: Request, @response() res: Response): Promise<Response> {
         try {
-            const result: UserAuthData = await this._userAuthDataService.getByUserId(req.params.user_id)
+            const result: UserAuthData | undefined = await this._userAuthDataService.getByUserId(req.params.user_id)
             if (!result || !result.fitbit) {
                 return res.status(HttpStatus.NOT_FOUND).send(
                     new ApiException(

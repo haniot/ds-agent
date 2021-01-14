@@ -51,6 +51,19 @@ import { PhysicalActivityEntityMapper } from '../infrastructure/entity/mapper/ph
 import { Weight } from '../application/domain/model/weight'
 import { WeightEntity } from '../infrastructure/entity/weight.entity'
 import { WeightEntityMapper } from '../infrastructure/entity/mapper/weight.entity.mapper'
+import { Device } from '../application/domain/model/device'
+import { DeviceEntity } from '../infrastructure/entity/device.entity'
+import { DeviceEntityMapper } from '../infrastructure/entity/mapper/device.entity.mapper'
+import { UserFitbitDevicesController } from '../ui/controllers/user.fitbit.devices.controller'
+import { IFitbitDeviceService } from '../application/port/fitbit.device.service.interface'
+import { FitbitDeviceService } from '../application/service/fitbit.device.service'
+import { IFitbitDeviceRepository } from '../application/port/fitbit.device.repository.interface'
+import { DeviceRepoModel } from '../infrastructure/database/schema/device.schema'
+import { FitbitDeviceRepository } from '../infrastructure/repository/fitbit.device.repository'
+import { InactiveUsersTask } from '../background/task/inactive.users.task'
+import { FitbitDevice } from '../application/domain/model/fitbit.device'
+import { FitbitDeviceEntity } from '../infrastructure/entity/fitbit.device.entity'
+import { FitbitDeviceEntityMapper } from '../infrastructure/entity/mapper/fitbit.device.entity.mapper'
 
 class IoC {
     private readonly _container: Container
@@ -90,10 +103,14 @@ class IoC {
             .to(UserFitbitAuthController).inSingletonScope()
         this._container.bind<UserFitbitSyncController>(Identifier.USER_FITBIT_SYNC_CONTROLLER)
             .to(UserFitbitSyncController).inSingletonScope()
+        this._container.bind<UserFitbitDevicesController>(Identifier.USER_FITBIT_DEVICES_CONTROLLER)
+            .to(UserFitbitDevicesController).inSingletonScope()
 
         // Services
         this.container.bind<IUserAuthDataService>(Identifier.USER_AUTH_DATA_SERVICE)
             .to(UserAuthDataService).inSingletonScope()
+        this.container.bind<IFitbitDeviceService>(Identifier.FITBIT_DEVICE_SERVICE)
+            .to(FitbitDeviceService).inSingletonScope()
 
         // Repositories
         this._container
@@ -108,10 +125,14 @@ class IoC {
         this._container
             .bind<IResourceRepository>(Identifier.RESOURCE_REPOSITORY)
             .to(ResourceRepository).inSingletonScope()
+        this._container
+            .bind<IFitbitDeviceRepository>(Identifier.FITBIT_DEVICE_REPOSITORY)
+            .to(FitbitDeviceRepository).inSingletonScope()
 
         // Models
         this._container.bind(Identifier.USER_AUTH_REPO_MODEL).toConstantValue(UserAuthRepoModel)
         this._container.bind(Identifier.RESOURCE_REPO_MODEL).toConstantValue(ResourceRepoModel)
+        this._container.bind(Identifier.DEVICE_REPO_MODEL).toConstantValue(DeviceRepoModel)
 
         // Mappers
         this.container
@@ -132,6 +153,12 @@ class IoC {
         this.container
             .bind<IEntityMapper<Weight, WeightEntity>>(Identifier.WEIGHT_ENTITY_MAPPER)
             .to(WeightEntityMapper).inSingletonScope()
+        this.container
+            .bind<IEntityMapper<Device, DeviceEntity>>(Identifier.DEVICE_ENTITY_MAPPER)
+            .to(DeviceEntityMapper).inSingletonScope()
+        this.container
+            .bind<IEntityMapper<FitbitDevice, FitbitDeviceEntity>>(Identifier.FITBIT_DEVICE_ENTITY_MAPPER)
+            .to(FitbitDeviceEntityMapper).inSingletonScope()
 
         // Background Services
         this._container
@@ -158,8 +185,11 @@ class IoC {
             .bind<IBackgroundTask>(Identifier.SUBSCRIBE_EVENT_BUS_TASK)
             .to(SubscribeEventBusTask).inRequestScope()
         this._container
-            .bind<IBackgroundTask>(Identifier.COLLECT_FITBIT_USER_DATA_TASK)
+            .bind<IBackgroundTask>(Identifier.SYNC_FITBIT_DATA_TASK)
             .to(SyncFitbitDataTask).inSingletonScope()
+        this._container
+            .bind<IBackgroundTask>(Identifier.INACTIVE_USERS_TASK)
+            .to(InactiveUsersTask).inSingletonScope()
 
         // Log
         this._container.bind<ILogger>(Identifier.LOGGER).to(CustomLogger).inSingletonScope()

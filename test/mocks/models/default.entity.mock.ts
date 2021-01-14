@@ -4,6 +4,7 @@ import { SleepType } from '../../../src/application/domain/model/sleep'
 import moment from 'moment'
 import { TokenManager } from '../utils/token.manager'
 import { ResourceType } from '../../../src/application/domain/utils/resource.type'
+import { ManufacturerType } from '../../../src/application/domain/utils/manufacturer.type'
 
 export abstract class DefaultEntityMock {
     public static ACTIVITY: any = {
@@ -167,6 +168,36 @@ export abstract class DefaultEntityMock {
         date_sync: '2019-09-12T13:36:49.741Z',
         user_id: '5d7a4a95c292db05e4f765a8',
         provider: 'Fitbit'
+    }
+
+    public static DEVICE: any = {
+        id: '5d7a9fc8d3f5bbb30e0d6a1d',
+        name: 'Default Device',
+        address: '50CE1D793EC5',
+        type: 'TRACKER',
+        last_sync: '2020-11-10T11:54:32.523Z',
+        manufacturer: 'Default Manufacturer',
+        user_id: '5a62be07de34500146d9c544'
+    }
+
+    public static FITBIT_DEVICE: any = {
+        id: '5d7a9fc8d3f5bbb30e0d6a1d',
+        name: 'Inspire HR',
+        address: '50CE1D793EC5',
+        type: 'TRACKER',
+        last_sync: '2020-11-10T11:27:55.271',
+        manufacturer: ManufacturerType.FITBIT,
+        user_id: '5a62be07de34500146d9c544'
+    }
+
+    public static FITBIT_DEVICE_FITBIT_FORMAT: any = {
+        id: '1521352314',
+        deviceVersion: 'Inspire HR',
+        mac: '50CE1D793EC5',
+        type: 'TRACKER',
+        lastSyncTime: '2020-11-10T11:27:55.271',
+        manufacturer: ManufacturerType.FITBIT,
+        user_id: '5a62be07de34500146d9c544'
     }
 
     public static SLEEP_PATTERN_SUMMARY_DATA: any = {
