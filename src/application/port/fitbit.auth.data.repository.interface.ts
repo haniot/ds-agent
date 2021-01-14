@@ -12,7 +12,8 @@ export interface IFitbitDataRepository {
 
     revokeToken(accessToken: string): Promise<boolean>
 
-    refreshToken(userId: string, accessToken: string, refreshToken: string, expiresIn?: number): Promise<FitbitAuthData>
+    refreshToken(userId: string, accessToken: string,
+                 refreshToken: string, expiresIn?: number): Promise<FitbitAuthData | undefined>
 
     syncFitbitData(data: FitbitAuthData, userId: string): Promise<DataSync>
 

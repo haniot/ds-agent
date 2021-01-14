@@ -108,8 +108,8 @@ export class FitbitDeviceRepository extends BaseRepository<FitbitDevice, FitbitD
             if (!devices || !devices.length) return resolve(result)
             try {
                 for (const item of devices) {
-                    const device: FitbitDevice = await this.create(item)
-                    result.push(device)
+                    const device: FitbitDevice | undefined = await this.create(item)
+                    if (device) result.push(device)
                 }
             } catch (err) {
                 return reject(this.mongoDBErrorListener(err))

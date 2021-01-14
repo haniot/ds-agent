@@ -246,8 +246,8 @@ describe('Routes: user.fitbit.devices', () => {
     })
 })
 
-async function createFitbitDevice(fitbitDevice: FitbitDevice): Promise<FitbitDevice> {
-    const fitbitDeviceSaved: FitbitDevice = await fitbitDeviceRepository.create(fitbitDevice)
+async function createFitbitDevice(fitbitDevice: FitbitDevice): Promise<FitbitDevice | undefined> {
+    const fitbitDeviceSaved: FitbitDevice | undefined = await fitbitDeviceRepository.create(fitbitDevice)
     return Promise.resolve(fitbitDeviceSaved)
 }
 

@@ -34,7 +34,7 @@ export class UserAuthDataService implements IUserAuthDataService {
     ) {
     }
 
-    public async add(item: UserAuthData): Promise<UserAuthData> {
+    public async add(item: UserAuthData): Promise<UserAuthData | undefined> {
         try {
             const authData: UserAuthData = await this.manageFitbitAuthData(item)
             CreateUserAuthDataValidator.validate(item)
@@ -50,19 +50,19 @@ export class UserAuthDataService implements IUserAuthDataService {
             authData.fitbit!.status = 'valid_token'
 
             // 2. Verify if already exists an token associated with the user
-            const alreadySaved: UserAuthData = await this._userAuthDataRepo
+            const alreadySaved: UserAuthData | undefined = await this._userAuthDataRepo
                 .findOne(new Query().fromJSON({ filters: { user_id: authData.user_id! } }))
 
             // 3. f the user has no token, the new token will be associated with the user
             if (!alreadySaved) {
-                const newAuthData: UserAuthData = await this._userAuthDataRepo.create(authData)
+                const newAuthData: UserAuthData | undefined = await this._userAuthDataRepo.create(authData)
                 if (newAuthData) this.publishFitbitTokenGranted(item.user_id!)
                 return Promise.resolve(newAuthData)
             }
 
             // 4. If the user has a token, it will be updated with the new token
             authData.id = alreadySaved.id
-            const updatedAuthData: UserAuthData = await this._userAuthDataRepo.update(authData)
+            const updatedAuthData: UserAuthData | undefined = await this._userAuthDataRepo.update(authData)
             if (updatedAuthData) this.publishFitbitTokenGranted(item.user_id!)
             return Promise.resolve(updatedAuthData)
         } catch (err) {
@@ -75,7 +75,7 @@ export class UserAuthDataService implements IUserAuthDataService {
         return this._userAuthDataRepo.find(query)
     }
 
-    public getById(id: string, query: IQuery): Promise<UserAuthData> {
+    public getById(id: string, query: IQuery): Promise<UserAuthData | undefined> {
         return this._userAuthDataRepo.findOne(query)
     }
 
@@ -87,7 +87,7 @@ export class UserAuthDataService implements IUserAuthDataService {
         throw Error('Not implemented!')
     }
 
-    public getByUserId(userId: string): Promise<UserAuthData> {
+    public getByUserId(userId: string): Promise<UserAuthData | undefined> {
         try {
             ObjectIdValidator.validate(userId)
         } catch (err) {
@@ -114,7 +114,7 @@ export class UserAuthDataService implements IUserAuthDataService {
             ObjectIdValidator.validate(userId)
 
             // 1. Check if user has authorization data saved.
-            const authData: UserAuthData =
+            const authData: UserAuthData | undefined =
                 await this._userAuthDataRepo.findOne(new Query().fromJSON({ filters: { user_id: userId } }))
 
             if (!authData || !authData.fitbit?.access_token) {
@@ -133,7 +133,7 @@ export class UserAuthDataService implements IUserAuthDataService {
             await this._fitbitAuthDataRepo.removeFitbitAuthData(userId)
 
             // 4. Revokes Fitbit access token.
-            this._fitbitAuthDataRepo.revokeToken(authData.fitbit.access_token!).then().catch()
+            this._fitbitAuthDataRepo.revokeToken(authData.fitbit?.access_token!).then().catch()
 
             // We can treat revoke as a success
             pubRevokeEvent()
@@ -178,12 +178,12 @@ export class UserAuthDataService implements IUserAuthDataService {
             if (!isTokenActive) authData.fitbit = await refreshToken(authData.fitbit)
 
             // 4. Verify if the token is expired. In positive match, refresh the token before continue.
-            VerifyFitbitAuthValidator.validate(authData.fitbit)
+            VerifyFitbitAuthValidator.validate(authData.fitbit!)
             const now: number = moment().add(5, 'minute').unix()
-            if (now > authData.fitbit.expires_in!) authData.fitbit = await refreshToken(authData.fitbit)
+            if (now > authData.fitbit?.expires_in!) authData.fitbit = await refreshToken(authData.fitbit!)
 
             // 5. Proceed with the sync
-            const result: DataSync = await this._fitbitAuthDataRepo.syncFitbitData(authData.fitbit, userId)
+            const result: DataSync = await this._fitbitAuthDataRepo.syncFitbitData(authData.fitbit!, userId)
             return Promise.resolve(result)
         } catch (err) {
             if (err.type) {

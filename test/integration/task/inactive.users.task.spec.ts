@@ -217,8 +217,8 @@ describe('INACTIVE USERS TASK', () => {
     })
 })
 
-async function createUserAuthData(userAuthData: UserAuthData): Promise<UserAuthData> {
-    const userAuthDataSaved: UserAuthData = await userAuthDataRepository.create(userAuthData)
+async function createUserAuthData(userAuthData: UserAuthData): Promise<UserAuthData | undefined> {
+    const userAuthDataSaved: UserAuthData | undefined = await userAuthDataRepository.create(userAuthData)
     return Promise.resolve(userAuthDataSaved)
 }
 
@@ -226,8 +226,8 @@ async function deleteAllUserAuthData() {
     return UserAuthRepoModel.deleteMany({})
 }
 
-async function createFitbitDevice(fitbitDevice: FitbitDevice): Promise<FitbitDevice> {
-    const fitbitDeviceSaved: FitbitDevice = await fitbitDeviceRepository.create(fitbitDevice)
+async function createFitbitDevice(fitbitDevice: FitbitDevice): Promise<FitbitDevice | undefined> {
+    const fitbitDeviceSaved: FitbitDevice | undefined = await fitbitDeviceRepository.create(fitbitDevice)
     return Promise.resolve(fitbitDeviceSaved)
 }
 

@@ -90,14 +90,15 @@ export class FitbitDataRepository implements IFitbitDataRepository {
         })
     }
 
-    public refreshToken(userId: string, accessToken: string, refreshToken: string, expiresIn?: number): Promise<FitbitAuthData> {
-        return new Promise<FitbitAuthData>(async (resolve, reject) => {
+    public refreshToken(userId: string, accessToken: string,
+                        refreshToken: string, expiresIn?: number): Promise<FitbitAuthData | undefined> {
+        return new Promise<FitbitAuthData | undefined>(async (resolve, reject) => {
             this._fitbitClientRepo.refreshToken(accessToken, refreshToken, expiresIn)
                 .then(async tokenData => {
                     if (!tokenData) return resolve(undefined)
                     const authData: FitbitAuthData = await this.manageAuthData(tokenData)
-                    const newTokenData: UserAuthData = await this.updateRefreshToken(userId, authData)
-                    return resolve(newTokenData.fitbit)
+                    const newTokenData: UserAuthData | undefined = await this.updateRefreshToken(userId, authData)
+                    return resolve(newTokenData?.fitbit)
                 }).catch(err => {
                 return reject(err)
             })
@@ -422,9 +423,9 @@ export class FitbitDataRepository implements IFitbitDataRepository {
         }
     }
 
-    private updateRefreshToken(userId: string, token: FitbitAuthData): Promise<UserAuthData> {
+    private updateRefreshToken(userId: string, token: FitbitAuthData): Promise<UserAuthData | undefined> {
         const itemUp: any = this._fitbitAuthEntityMapper.transform(token)
-        return new Promise<UserAuthData>((resolve, reject) => {
+        return new Promise<UserAuthData | undefined>((resolve, reject) => {
             this._userAuthRepoModel.findOneAndUpdate(
                 { user_id: userId },
                 { fitbit: itemUp },
@@ -483,14 +484,14 @@ export class FitbitDataRepository implements IFitbitDataRepository {
             if (!resources || !resources.length) return result
             try {
                 for await (const item of resources) {
-                    const resource: Resource = await this._resourceRepo.create(new Resource().fromJSON({
+                    const resource: Resource | undefined = await this._resourceRepo.create(new Resource().fromJSON({
                         resource: item,
                         type,
                         date_sync: moment().utc().format(),
                         user_id: userId,
                         provider: 'Fitbit'
                     }))
-                    result.push(resource)
+                    if (resource) result.push(resource)
                 }
             } catch (err) {
                 return reject(this.mongoDBErrorListener(err))

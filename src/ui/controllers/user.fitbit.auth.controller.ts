@@ -55,7 +55,7 @@ export class UserFitbitAuthController {
     @httpGet('/')
     public async getFitbitAuthData(@request() req: Request, @response() res: Response): Promise<Response> {
         try {
-            const result: UserAuthData = await this._userAuthDataService.getByUserId(req.params.user_id)
+            const result: UserAuthData | undefined = await this._userAuthDataService.getByUserId(req.params.user_id)
             if (!result || !result.fitbit) {
                 return res.status(HttpStatus.NOT_FOUND).send(
                     new ApiException(
