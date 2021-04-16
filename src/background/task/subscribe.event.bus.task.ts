@@ -34,6 +34,7 @@ export class SubscribeEventBusTask implements IBackgroundTask {
                     new UserDeleteEvent(new Date()),
                     new UserDeleteEventHandler(
                         DIContainer.get(Identifier.FITBIT_DATA_REPOSITORY),
+                        DIContainer.get(Identifier.FITBIT_DEVICE_REPOSITORY),
                         DIContainer.get(Identifier.USER_AUTH_DATA_REPOSITORY),
                         DIContainer.get(Identifier.RESOURCE_REPOSITORY),
                         this._logger
