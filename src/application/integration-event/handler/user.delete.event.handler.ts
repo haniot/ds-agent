@@ -10,6 +10,7 @@ import { IIntegrationEventHandler } from './integration.event.handler.interface'
 import { UserDeleteEvent } from '../event/user.delete.event'
 import { inject } from 'inversify'
 import { IResourceRepository } from '../../port/resource.repository.interface'
+import { IFitbitDeviceRepository } from '../../port/fitbit.device.repository.interface'
 
 /**
  * Handler for UserDeleteEvent operation.
@@ -20,9 +21,10 @@ import { IResourceRepository } from '../../port/resource.repository.interface'
 export class UserDeleteEventHandler implements IIntegrationEventHandler<UserDeleteEvent> {
     constructor(
         @inject(Identifier.FITBIT_DATA_REPOSITORY) readonly fitbitAuthDataRepo: IFitbitDataRepository,
+        @inject(Identifier.FITBIT_DEVICE_REPOSITORY) readonly fitbitDeviceRepo: IFitbitDeviceRepository,
         @inject(Identifier.USER_AUTH_DATA_REPOSITORY) readonly userAuthDataRepo: IUserAuthDataRepository,
         @inject(Identifier.RESOURCE_REPOSITORY) readonly resourceRepo: IResourceRepository,
-        @inject(Identifier.FITBIT_DATA_REPOSITORY) readonly logger: ILogger
+        @inject(Identifier.LOGGER) readonly logger: ILogger
     ) {
     }
 
@@ -45,6 +47,7 @@ export class UserDeleteEventHandler implements IIntegrationEventHandler<UserDele
                 }
                 await this.userAuthDataRepo.deleteByQuery(query)
                 await this.resourceRepo.deleteByQuery(query)
+                await this.fitbitDeviceRepo.removeByQuery(query)
 
                 // 3. If got here, it's because the action was successful.
                 this.logger.info(`Action for event ${event.event_name} successfully held!`)
