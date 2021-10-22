@@ -44,7 +44,7 @@ export class BackgroundService {
             // Open RabbitMQ connection and perform tasks
             this._startTasks()
 
-        } catch (err) {
+        } catch (err: any) {
             return Promise.reject(new Error(`Error initializing services in background! ${err.message}`))
         }
     }
@@ -56,8 +56,8 @@ export class BackgroundService {
             await this._subscribeTask.stop()
             await this._syncFitbitDataTask.stop()
             await this._inactiveUsersTask.stop()
-        } catch (err) {
-            return Promise.reject(new Error(`Error stopping MongoDB! ${err.message}`))
+        } catch (err: any) {
+            return Promise.reject(new Error(`Error stopping background services! ${err.message}`))
         }
     }
 

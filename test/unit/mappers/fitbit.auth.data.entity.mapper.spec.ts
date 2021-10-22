@@ -87,7 +87,7 @@ describe('Mappers: FitbitAuthDataEntityMapper', () => {
             it('should throw an error for not implemented method', () => {
                 try {
                     mapper.modelEntityToModel(new FitbitAuthData())
-                } catch (err) {
+                } catch (err: any) {
                     assert.propertyVal(err, 'message', 'Not implemented!')
                 }
             })

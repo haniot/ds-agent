@@ -23,7 +23,7 @@ describe('Routes: user.fitbit.devices', () => {
             await dbConnection.tryConnect(mongoConfigs.uri, mongoConfigs.options)
 
             await deleteAllFitbitDevices()
-        } catch (err) {
+        } catch (err: any) {
             throw new Error('Failure on user.fitbit.devices routes test: ' + err.message)
         }
     })
@@ -34,7 +34,7 @@ describe('Routes: user.fitbit.devices', () => {
             await deleteAllFitbitDevices()
 
             await dbConnection.dispose()
-        } catch (err) {
+        } catch (err: any) {
             throw new Error('Failure on user.fitbit.devices routes test: ' + err.message)
         }
     })
@@ -70,7 +70,7 @@ describe('Routes: user.fitbit.devices', () => {
 
                     result = await createFitbitDevice(fitbitDeviceGet)
                     result2 = await createFitbitDevice(fitbitDeviceGet2)
-                } catch (err) {
+                } catch (err: any) {
                     throw new Error('Failure on user.fitbit.devices routes test: ' + err.message)
                 }
             })
@@ -102,7 +102,7 @@ describe('Routes: user.fitbit.devices', () => {
             before(async () => {
                 try {
                     await deleteAllFitbitDevices()
-                } catch (err) {
+                } catch (err: any) {
                     throw new Error('Failure on user.fitbit.devices routes test: ' + err.message)
                 }
             })
@@ -133,7 +133,7 @@ describe('Routes: user.fitbit.devices', () => {
                     result = await createFitbitDevice(fitbitDeviceGet)
                     result2 = await createFitbitDevice(fitbitDeviceGet2)
                     result3 = await createFitbitDevice(fitbitDeviceGet3)
-                } catch (err) {
+                } catch (err: any) {
                     throw new Error('Failure on user.fitbit.devices routes test: ' + err.message)
                 }
             })
@@ -225,7 +225,7 @@ describe('Routes: user.fitbit.devices', () => {
 
                     await createFitbitDevice(fitbitDeviceGet)
                     await createFitbitDevice(fitbitDeviceGet2)
-                } catch (err) {
+                } catch (err: any) {
                     throw new Error('Failure on user.fitbit.devices routes test: ' + err.message)
                 }
             })

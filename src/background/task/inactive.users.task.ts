@@ -44,13 +44,13 @@ export class InactiveUsersTask implements IBackgroundTask {
             } else await this.findInactiveUsers()
 
             this._logger.debug('Fitbit inactive users task started successfully!')
-        } catch (err) {
+        } catch (err: any) {
             this._logger.error(`An error occurred initializing the Fitbit inactive users task. ${err.message}`)
         }
     }
 
     public stop(): Promise<void> {
-        if (this.expressionInactiveUsers) this.schedule.destroy()
+        if (this.expressionInactiveUsers) this.schedule.stop()
         return Promise.resolve()
     }
 
@@ -97,7 +97,7 @@ export class InactiveUsersTask implements IBackgroundTask {
                     }
                 }
             }
-        } catch (err) {
+        } catch (err: any) {
             this._logger.error(`An error occurred while trying to retrieve Users Fitbit data. ${err.message}`)
         }
     }

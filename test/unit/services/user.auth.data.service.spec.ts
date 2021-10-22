@@ -70,7 +70,7 @@ describe('Services: UserAuthDataService', () => {
         it('should throw an error for not implemented', () => {
             try {
                 service.getAll(new Query())
-            } catch (err) {
+            } catch (err: any) {
                 assert.propertyVal(err, 'message', 'Not implemented!')
             }
         })
@@ -79,7 +79,7 @@ describe('Services: UserAuthDataService', () => {
         it('should throw an error for not implemented', () => {
             try {
                 service.getById('123', new Query())
-            } catch (err) {
+            } catch (err: any) {
                 assert.propertyVal(err, 'message', 'Not implemented!')
             }
         })
@@ -88,7 +88,7 @@ describe('Services: UserAuthDataService', () => {
         it('should throw an error for not implemented', () => {
             try {
                 service.remove('123')
-            } catch (err) {
+            } catch (err: any) {
                 assert.propertyVal(err, 'message', 'Not implemented!')
             }
         })
@@ -97,7 +97,7 @@ describe('Services: UserAuthDataService', () => {
         it('should throw an error for not implemented', () => {
             try {
                 service.update(data)
-            } catch (err) {
+            } catch (err: any) {
                 assert.propertyVal(err, 'message', 'Not implemented!')
             }
         })

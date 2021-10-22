@@ -33,7 +33,7 @@ export class SyncFitbitDataTask implements IBackgroundTask {
             if (this.syncQueue) {
                 await this.syncQueue.empty()
                 this.syncQueue = undefined
-                this.schedule.destroy()
+                this.schedule.stop()
             }
             // It is necessary wait until Redis is available to initialize the queue.
             await this.waitRedis()
@@ -49,14 +49,14 @@ export class SyncFitbitDataTask implements IBackgroundTask {
             this.schedule.start()
 
             this._logger.debug('Fitbit data sync task started successfully!')
-        } catch (e) {
+        } catch (e: any) {
             this._logger.error(`An error occurred initializing the Fitbit data sync task. ${e.message}`)
         }
     }
 
     public stop(): Promise<void> {
         if (this.syncQueue) this.syncQueue!.empty().then()
-        this.schedule.destroy()
+        this.schedule.stop()
         return Promise.resolve()
     }
 

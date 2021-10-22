@@ -42,7 +42,7 @@ export class UserFitbitDevicesController {
             res.setHeader('x-total-count', count)
 
             return res.status(HttpStatus.OK).send(this.toJSONView(result))
-        } catch (err) {
+        } catch (err: any) {
             const handlerError = ApiExceptionManager.build(err)
             return res.status(handlerError.code).send(handlerError.toJSON())
         }

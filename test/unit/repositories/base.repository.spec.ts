@@ -9,7 +9,7 @@ import { ILogger } from '../../../src/utils/custom.logger'
 import { Entity } from '../../../src/application/domain/model/entity'
 import { Query } from '../../../src/infrastructure/repository/query/query'
 
-require('sinon-mongoose')
+require('../../utils/sinon-mongoose')
 
 class FakeRepository<T extends Entity, TModel> extends BaseRepository<any, any> {
     constructor(

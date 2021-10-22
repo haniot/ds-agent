@@ -15,7 +15,7 @@ describe('Validators: VerifyFitbitAuthValidator', () => {
             data.status = 'invalid_token'
             try {
                 VerifyFitbitAuthValidator.validate(data)
-            } catch (err) {
+            } catch (err: any) {
                 assert.propertyVal(err, 'type', 'invalid_token')
                 assert.propertyVal(err, 'message', `The access token is invalid: ${data.access_token}`)
                 assert.propertyVal(err, 'description', 'Please make a new Fitbit Auth data and try again.')
@@ -25,7 +25,7 @@ describe('Validators: VerifyFitbitAuthValidator', () => {
             data.status = 'invalid_grant'
             try {
                 VerifyFitbitAuthValidator.validate(data)
-            } catch (err) {
+            } catch (err: any) {
                 assert.propertyVal(err, 'type', 'invalid_grant')
                 assert.propertyVal(err, 'message', `The refresh token is invalid: ${data.refresh_token}`)
                 assert.propertyVal(err, 'description', 'Please make a new Fitbit Auth data and try again.')

@@ -15,7 +15,7 @@ describe('Validators: CreateFitbitAuthDataValidator', () => {
             item.last_sync = undefined
             try {
                 CreateFitbitAuthDataValidator.validate(item)
-            } catch (err) {
+            } catch (err: any) {
                 assert.propertyVal(err, 'message', 'Required fields were not provided...')
                 assert.propertyVal(err, 'description', 'Fitbit Auth Data Validation: access_token required!')
             } finally {
@@ -26,7 +26,7 @@ describe('Validators: CreateFitbitAuthDataValidator', () => {
             item.refresh_token = undefined
             try {
                 CreateFitbitAuthDataValidator.validate(item)
-            } catch (err) {
+            } catch (err: any) {
                 assert.propertyVal(err, 'message', 'Required fields were not provided...')
                 assert.propertyVal(err, 'description', 'Fitbit Auth Data Validation: refresh_token required!')
             } finally {
@@ -37,7 +37,7 @@ describe('Validators: CreateFitbitAuthDataValidator', () => {
             item.last_sync = '12/12/2012'
             try {
                 CreateFitbitAuthDataValidator.validate(item)
-            } catch (err) {
+            } catch (err: any) {
                 assert.propertyVal(err, 'message', 'Datetime: 12/12/2012, is not in valid ISO 8601 format.')
                 assert.propertyVal(err, 'description', 'Date must be in the format: yyyy-MM-dd\'T\'HH:mm:ssZ')
             } finally {

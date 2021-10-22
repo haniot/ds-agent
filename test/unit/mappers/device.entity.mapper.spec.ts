@@ -69,7 +69,7 @@ describe('MAPPERS: DeviceEntityMapper', () => {
             it('should throw an error', () => {
                 try {
                     deviceEntityMapper.modelEntityToModel(new DeviceEntity())
-                } catch (err) {
+                } catch (err: any) {
                     assert.propertyVal(err, 'message', 'Not implemented.')
                 }
             })

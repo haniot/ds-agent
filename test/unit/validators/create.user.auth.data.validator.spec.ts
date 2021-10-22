@@ -17,7 +17,7 @@ describe('Validators: CreateUserAuthDataValidator', () => {
             item.fitbit = undefined
             try {
                 CreateUserAuthDataValidator.validate(item)
-            } catch (err) {
+            } catch (err: any) {
                 assert.propertyVal(err, 'message', 'Required fields were not provided...')
                 assert.propertyVal(err, 'description', 'User Auth Validation: user_id required!')
             }
@@ -29,7 +29,7 @@ describe('Validators: CreateUserAuthDataValidator', () => {
                 newItem.fitbit!.scope = ''
                 CreateUserAuthDataValidator.validate(newItem)
                 assert.fail('Should not return this message!')
-            } catch (err) {
+            } catch (err: any) {
                 assert.propertyVal(err, 'message',
                     'The token must have permission for at least one of the features that are synced by the API.')
                 assert.propertyVal(err, 'description',
