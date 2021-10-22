@@ -463,7 +463,7 @@ export class FitbitDataRepository implements IFitbitDataRepository {
             await this.cleanResourceList(userId, type)
             await this.saveResourceList(resources, userId, type)
             return Promise.resolve()
-        } catch (err) {
+        } catch (err: any) {
             this._logger.error(`Error at save ${type} logs: ${err.message}`)
             return Promise.resolve()
         }

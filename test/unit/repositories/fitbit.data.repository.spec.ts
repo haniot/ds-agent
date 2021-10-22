@@ -12,7 +12,7 @@ import { assert } from 'chai'
 import sinon from 'sinon'
 import { DeviceRepositoryMock } from '../../mocks/repositories/device.repository.mock'
 
-require('sinon-mongoose')
+require('../../utils/sinon-mongoose')
 
 describe('Repositories: FitbitDataRepository', () => {
     const data: UserAuthData = new UserAuthData().fromJSON(DefaultEntityMock.USER_AUTH_DATA)

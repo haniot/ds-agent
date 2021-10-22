@@ -6,7 +6,7 @@ RUN mkdir -p /usr/src/ds
 WORKDIR /usr/src/ds
 
 # Install app dependencies
-COPY package.json /usr/src/ds/
+COPY package.json package-lock.json /usr/src/ds/
 RUN npm install
 
 # Copy app source

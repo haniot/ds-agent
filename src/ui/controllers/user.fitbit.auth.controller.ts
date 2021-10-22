@@ -41,7 +41,7 @@ export class UserFitbitAuthController {
             })
             await this._userAuthDataService.add(userAuth)
             return res.status(HttpStatus.NO_CONTENT).send()
-        } catch (err) {
+        } catch (err: any) {
             const handlerError = ApiExceptionManager.build(err)
             return res.status(handlerError.code).send(handlerError.toJSON())
         }
@@ -66,7 +66,7 @@ export class UserFitbitAuthController {
                 )
             }
             return res.status(HttpStatus.OK).send(this.toJsonView(result))
-        } catch (err) {
+        } catch (err: any) {
             const handlerError = ApiExceptionManager.build(err)
             return res.status(handlerError.code).send(handlerError.toJSON())
         }
@@ -82,7 +82,7 @@ export class UserFitbitAuthController {
         try {
             await this._userAuthDataService.revokeFitbitAccessToken(req.params.user_id)
             return res.status(HttpStatus.NO_CONTENT).send()
-        } catch (err) {
+        } catch (err: any) {
             const handlerError = ApiExceptionManager.build(err)
             return res.status(handlerError.code).send(handlerError.toJSON())
         }

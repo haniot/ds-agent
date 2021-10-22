@@ -43,7 +43,7 @@ export class SubscribeEventBusTask implements IBackgroundTask {
                 ).then(res => {
                 this._logger.info('Subscribe in UserDeleteEvent successful!')
             })
-        } catch (err) {
+        } catch (err: any) {
             this._logger.error(`Error trying to get connection to Event Bus for event subscribe. ${err.message}`)
         }
     }

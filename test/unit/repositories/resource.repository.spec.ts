@@ -9,7 +9,7 @@ import { Query } from '../../../src/infrastructure/repository/query/query'
 import { assert } from 'chai'
 import sinon from 'sinon'
 
-require('sinon-mongoose')
+require('../../utils/sinon-mongoose')
 
 describe('Repositories: ResourceRepository', () => {
     const modelFake: any = ResourceRepoModel

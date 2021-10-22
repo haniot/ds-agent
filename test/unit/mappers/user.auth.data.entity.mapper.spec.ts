@@ -58,7 +58,7 @@ describe('Mappers: UserAuthDataEntityMapper', () => {
             it('should throw an error for not implemented method', () => {
                 try {
                     mapper.modelEntityToModel(new UserAuthData())
-                } catch (err) {
+                } catch (err: any) {
                     assert.propertyVal(err, 'message', 'Not implemented!')
                 }
             })

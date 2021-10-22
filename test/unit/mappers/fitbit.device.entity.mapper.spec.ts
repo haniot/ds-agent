@@ -92,7 +92,7 @@ describe('MAPPERS: FitbitDeviceEntityMapper', () => {
             it('should throw an error', () => {
                 try {
                     fitbitDeviceEntityMapper.modelEntityToModel(new FitbitDeviceEntity())
-                } catch (err) {
+                } catch (err: any) {
                     assert.propertyVal(err, 'message', 'Not implemented.')
                 }
             })
