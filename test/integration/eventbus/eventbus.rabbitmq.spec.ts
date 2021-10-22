@@ -22,7 +22,7 @@ describe('EVENT BUS', () => {
     after(async () => {
         try {
             await eventBus.dispose()
-        } catch (err) {
+        } catch (err: any) {
             throw new Error('Failure on EventBus test: ' + err.message)
         }
     })
@@ -53,7 +53,7 @@ describe('EVENT BUS', () => {
                 await eventBus.connectionPub.open(process.env.RABBITMQ_URI || Default.RABBITMQ_URI,
                     { interval: 100, sslOptions: { ca: [] } })
                 expect(eventBus.connectionPub.isOpen).to.eql(true)
-            } catch (err) {
+            } catch (err: any) {
                 throw new Error('Failure on EventBus test: ' + err.message)
             }
 
@@ -64,7 +64,7 @@ describe('EVENT BUS', () => {
                 await eventBus.connectionSub.open(process.env.RABBITMQ_URI || Default.RABBITMQ_URI,
                     { interval: 100, sslOptions: { ca: [] } })
                 expect(eventBus.connectionSub.isOpen).to.eql(true)
-            } catch (err) {
+            } catch (err: any) {
                 throw new Error('Failure on EventBus test: ' + err.message)
             }
         })
@@ -82,7 +82,7 @@ describe('EVENT BUS', () => {
                     .then(result => {
                         expect(result).to.equal(true)
                     })
-            } catch (err) {
+            } catch (err: any) {
                 throw new Error('Failure on EventBus test: ' + err.message)
             }
         })
@@ -98,7 +98,7 @@ describe('EVENT BUS', () => {
                     .then(result => {
                         expect(result).to.equal(true)
                     })
-            } catch (err) {
+            } catch (err: any) {
                 throw new Error('Failure on EventBus test: ' + err.message)
             }
         })
@@ -116,7 +116,7 @@ describe('EVENT BUS', () => {
                     .then((result: boolean) => {
                         expect(result).to.equal(true)
                     })
-            } catch (err) {
+            } catch (err: any) {
                 throw new Error('Failure on EventBus test: ' + err.message)
             }
         })
@@ -132,7 +132,7 @@ describe('EVENT BUS', () => {
                     .then((result: boolean) => {
                         expect(result).to.equal(true)
                     })
-            } catch (err) {
+            } catch (err: any) {
                 throw new Error('Failure on EventBus test: ' + err.message)
             }
         })

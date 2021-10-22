@@ -89,7 +89,7 @@ export class FitbitDeviceRepository extends BaseRepository<FitbitDevice, FitbitD
             await this.removeByQuery(new Query().fromJSON({ filters: { user_id: userId } }))
             await this.saveDevices(devices)
             return Promise.resolve()
-        } catch (err) {
+        } catch (err: any) {
             this._logger.error(`Error at save devices: ${err.message}`)
             return Promise.resolve()
         }

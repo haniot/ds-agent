@@ -66,7 +66,7 @@ describe('Mappers: ResourceEntityMapper', () => {
             it('should throw an error for not implemented method', () => {
                 try {
                     mapper.modelEntityToModel(new Resource())
-                } catch (err) {
+                } catch (err: any) {
                     assert.propertyVal(err, 'message', 'Not implemented!')
                 }
             })

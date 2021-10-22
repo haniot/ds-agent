@@ -11,7 +11,7 @@ describe('Validators: DateTimeValidator', () => {
         it('should throw error for does pass invalid date time', () => {
             try {
                 DatetimeValidator.validate('02-08-2018')
-            } catch (err) {
+            } catch (err: any) {
                 assert.property(err, 'message')
                 assert.property(err, 'description')
                 assert.equal(err.message, 'Datetime: 02-08-2018, is not in valid ISO 8601 format.')

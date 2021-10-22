@@ -31,7 +31,7 @@ export class UserFitbitSyncController {
         try {
             const result: DataSync = await this._userAuthDataService.syncFitbitDataFromUser(req.params.user_id)
             return res.status(HttpStatus.CREATED).send(this.toJSONView(result))
-        } catch (err) {
+        } catch (err: any) {
             if (err.code) {
                 let status: number = HttpStatus.INTERNAL_SERVER_ERROR
                 if ([1011, 1012, 1021].includes(err.code)) status = HttpStatus.BAD_REQUEST

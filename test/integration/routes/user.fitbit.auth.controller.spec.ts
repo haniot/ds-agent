@@ -19,7 +19,7 @@
 //                 await dbConnection.tryConnect(process.env.MONGODB_URI_TEST || Default.MONGODB_URI_TEST, { interval: 100 })
 //                 await deleteAll({})
 //                 await saveData(DefaultEntityMock.USER_AUTH_DATA)
-//             } catch (err) {
+//             } catch (err: any) {
 //                 throw new Error('Failure on Educator test: ' + err.message)
 //             }
 //         }
@@ -28,7 +28,7 @@
 //         try {
 //             await deleteAll({})
 //             await dbConnection.dispose()
-//         } catch (err) {
+//         } catch (err: any) {
 //             throw new Error('Failure on Educator test: ' + err.message)
 //         }
 //     })

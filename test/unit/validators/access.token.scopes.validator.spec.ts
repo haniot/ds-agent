@@ -17,7 +17,7 @@ describe('Validators: AccessTokenScopesValidator', () => {
             item.fitbit = undefined
             try {
                 AccessTokenScopesValidator.validate(item)
-            } catch (err) {
+            } catch (err: any) {
                 assert.propertyVal(err, 'message',
                     'The token must have permission for at least one of the features that are synced by the API.')
                 assert.propertyVal(err, 'description',
@@ -30,7 +30,7 @@ describe('Validators: AccessTokenScopesValidator', () => {
                 const newItem: UserAuthData = new UserAuthData().fromJSON(DefaultEntityMock.USER_AUTH_DATA)
                 newItem.fitbit!.scope = 'rpro'
                 AccessTokenScopesValidator.validate(newItem)
-            } catch (err) {
+            } catch (err: any) {
                 assert.propertyVal(err, 'message',
                     'The token must have permission for at least one of the features that are synced by the API.')
                 assert.propertyVal(err, 'description',

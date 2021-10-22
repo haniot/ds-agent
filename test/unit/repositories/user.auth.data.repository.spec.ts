@@ -10,7 +10,7 @@ import { CustomLoggerMock } from '../../mocks/custom.logger.mock'
 import { EventBusRabbitMQMock } from '../../mocks/eventbus/eventbus.rabbitmq.mock'
 import { Query } from '../../../src/infrastructure/repository/query/query'
 
-require('sinon-mongoose')
+require('../../utils/sinon-mongoose')
 
 describe('Repositories: UserAuthDataRepository', () => {
     const modelFake: any = UserAuthRepoModel

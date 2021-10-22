@@ -34,7 +34,7 @@ describe('INACTIVE USERS TASK', () => {
 
             await deleteAllFitbitDevices()
             await deleteAllUserAuthData()
-        } catch (err) {
+        } catch (err: any) {
             throw new Error('Failure on InactiveUsersTask test: ' + err.message)
         }
     })
@@ -46,7 +46,7 @@ describe('INACTIVE USERS TASK', () => {
             await deleteAllUserAuthData()
 
             await dbConnection.dispose()
-        } catch (err) {
+        } catch (err: any) {
             throw new Error('Failure on InactiveUsersTask test: ' + err.message)
         }
     })
@@ -64,7 +64,7 @@ describe('INACTIVE USERS TASK', () => {
 
                     await createUserAuthData(userAuthData)
                     await createFitbitDevice(fitbitDevice)
-                } catch (err) {
+                } catch (err: any) {
                     throw new Error('Failure on Task InactiveUsersTask test: ' + err.message)
                 }
             })
@@ -73,7 +73,7 @@ describe('INACTIVE USERS TASK', () => {
                 try {
                     await deleteAllFitbitDevices()
                     await deleteAllUserAuthData()
-                } catch (err) {
+                } catch (err: any) {
                     throw new Error('Failure on Task InactiveUsersTask test: ' + err.message)
                 }
             })
@@ -89,7 +89,7 @@ describe('INACTIVE USERS TASK', () => {
                     const userAuthDataResult = await userAuthDataRepository.getUserAuthDataByUserId(userAuthData.user_id!)
                     expect(userAuthDataResult.fitbit?.access_token).to.eql('Access Token')
                     await inactiveUsersTask.stop()
-                } catch (err) {
+                } catch (err: any) {
                     throw new Error('Failure on Task InactiveUsersTask test: ' + err.message)
                 }
             })
@@ -112,7 +112,7 @@ describe('INACTIVE USERS TASK', () => {
                     await createUserAuthData(userAuthData)
                     await createFitbitDevice(fitbitDevice)
                     await createFitbitDevice(otherFitbitDevice)
-                } catch (err) {
+                } catch (err: any) {
                     throw new Error('Failure on Task InactiveUsersTask test: ' + err.message)
                 }
             })
@@ -121,7 +121,7 @@ describe('INACTIVE USERS TASK', () => {
                 try {
                     await deleteAllFitbitDevices()
                     await deleteAllUserAuthData()
-                } catch (err) {
+                } catch (err: any) {
                     throw new Error('Failure on Task InactiveUsersTask test: ' + err.message)
                 }
             })
@@ -137,7 +137,7 @@ describe('INACTIVE USERS TASK', () => {
                     const userAuthDataResult = await userAuthDataRepository.getUserAuthDataByUserId(userAuthData.user_id!)
                     expect(userAuthDataResult.fitbit?.access_token).to.be.undefined
                     await inactiveUsersTask.stop()
-                } catch (err) {
+                } catch (err: any) {
                     throw new Error('Failure on Task InactiveUsersTask test: ' + err.message)
                 }
             })
@@ -152,7 +152,7 @@ describe('INACTIVE USERS TASK', () => {
                     await deleteAllUserAuthData()
 
                     await createUserAuthData(userAuthData)
-                } catch (err) {
+                } catch (err: any) {
                     throw new Error('Failure on Task InactiveUsersTask test: ' + err.message)
                 }
             })
@@ -161,7 +161,7 @@ describe('INACTIVE USERS TASK', () => {
                 try {
                     await deleteAllFitbitDevices()
                     await deleteAllUserAuthData()
-                } catch (err) {
+                } catch (err: any) {
                     throw new Error('Failure on Task InactiveUsersTask test: ' + err.message)
                 }
             })
@@ -176,7 +176,7 @@ describe('INACTIVE USERS TASK', () => {
                     const userAuthDataResult = await userAuthDataRepository.getUserAuthDataByUserId(userAuthData.user_id!)
                     expect(userAuthDataResult.fitbit?.access_token).to.eql('Access Token')
                     await inactiveUsersTask.stop()
-                } catch (err) {
+                } catch (err: any) {
                     throw new Error('Failure on Task InactiveUsersTask test: ' + err.message)
                 }
             })
@@ -187,7 +187,7 @@ describe('INACTIVE USERS TASK', () => {
                 try {
                     await deleteAllFitbitDevices()
                     await deleteAllUserAuthData()
-                } catch (err) {
+                } catch (err: any) {
                     throw new Error('Failure on Task InactiveUsersTask test: ' + err.message)
                 }
             })
@@ -196,7 +196,7 @@ describe('INACTIVE USERS TASK', () => {
                 try {
                     await deleteAllFitbitDevices()
                     await deleteAllUserAuthData()
-                } catch (err) {
+                } catch (err: any) {
                     throw new Error('Failure on Task InactiveUsersTask test: ' + err.message)
                 }
             })
@@ -209,7 +209,7 @@ describe('INACTIVE USERS TASK', () => {
                     await inactiveUsersTask.run()
 
                     await inactiveUsersTask.stop()
-                } catch (err) {
+                } catch (err: any) {
                     throw new Error('Failure on Task InactiveUsersTask test: ' + err.message)
                 }
             })

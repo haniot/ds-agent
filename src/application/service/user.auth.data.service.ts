@@ -65,7 +65,7 @@ export class UserAuthDataService implements IUserAuthDataService {
             const updatedAuthData: UserAuthData | undefined = await this._userAuthDataRepo.update(authData)
             if (updatedAuthData) this.publishFitbitTokenGranted(item.user_id!)
             return Promise.resolve(updatedAuthData)
-        } catch (err) {
+        } catch (err: any) {
             if (err.type) return Promise.reject(this.manageFitbitAuthError(err))
             return Promise.reject(err)
         }
@@ -138,7 +138,7 @@ export class UserAuthDataService implements IUserAuthDataService {
             // We can treat revoke as a success
             pubRevokeEvent()
             return Promise.resolve()
-        } catch (err) {
+        } catch (err: any) {
             // Only if The error is a ValidationException or RepositoryException, reject it
             if (err instanceof ValidationException || err instanceof RepositoryException) {
                 return Promise.reject(err)
@@ -185,7 +185,7 @@ export class UserAuthDataService implements IUserAuthDataService {
             // 5. Proceed with the sync
             const result: DataSync = await this._fitbitAuthDataRepo.syncFitbitData(authData.fitbit!, userId)
             return Promise.resolve(result)
-        } catch (err) {
+        } catch (err: any) {
             if (err.type) {
                 // If the access token is invalid, it is necessary to update token status
                 if (err.type === 'invalid_token') this.updateTokenStatus(userId, err.type)
