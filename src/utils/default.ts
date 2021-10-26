@@ -41,6 +41,6 @@ export abstract class Default {
     public static readonly EXPRESSION_AUTO_SYNC: string = '0 0 * * 0'
     public static readonly EXPRESSION_INACTIVE_USERS: string = '0 * * * *'
 
-    // Number of days of Inactive users tasks.
+    // Number of days used to invalidate Fitbit access for an inactive user.
     public static readonly DAYS_INACTIVE_USERS: number = 14
 }
