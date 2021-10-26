@@ -45,6 +45,8 @@ The application settings are defined by environment variables. To define the set
 | `FITBIT_CLIENT_ID` | Client Id for Fitbit Application responsible to manage user data. | `CLIENT_ID_HERE` |
 | `FITBIT_CLIENT_SECRET` | Client Secret for Fitbit Application responsible to manage user data. | `CLIENT_SECRET_HERE` |
 | `EXPRESSION_AUTO_SYNC` | Defines how often the application will automatically sync user data in the background according to the crontab expression. | `0 0 * * 0` |
+| `EXPRESSION_INACTIVE_USERS` | Defines how often the application will automatically look for inactive users to invalidate them in the background according to the crontab expression. | `0 * * * *` |
+| `DAYS_INACTIVE_USERS` | Number of days used to invalidate Fitbit access for an inactive user. | `14` |
 
 ## Generate Certificates
 For development and testing environments the easiest and fastest way is to generate your own self-signed certificates. These certificates can be used to encrypt data as well as certificates signed by a CA, but users will receive a warning that the certificate is not trusted for their computer or browser. Therefore, self-signed certificates should only be used in non-production environments, that is, development and testing environments. To do this, run the `create-self-signed-certs.sh` script in the root of the repository.
@@ -129,6 +131,8 @@ docker run --rm \
   -e FITBIT_CLIENT_ID="YOUR_FITBIT_CLIENT_ID" \
   -e FITBIT_CLIENT_SECRET="YOUR_FITBIT_CLIENT_SECRET" \
   -e EXPRESSION_AUTO_SYNC="0 0 * * 0" \
+  -e EXPRESSION_INACTIVE_USERS="0 * * * *" \
+  -e DAYS_INACTIVE_USERS="14" \
   --name haniot-ds-agent \     
   haniot/ds-agent-service
 ```
