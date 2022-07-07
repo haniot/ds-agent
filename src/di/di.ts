@@ -64,6 +64,7 @@ import { InactiveUsersTask } from '../background/task/inactive.users.task'
 import { FitbitDevice } from '../application/domain/model/fitbit.device'
 import { FitbitDeviceEntity } from '../infrastructure/entity/fitbit.device.entity'
 import { FitbitDeviceEntityMapper } from '../infrastructure/entity/mapper/fitbit.device.entity.mapper'
+import { RpcServerEventBusTask } from '../background/task/rpc.server.event.bus.task'
 
 class IoC {
     private readonly _container: Container
@@ -184,6 +185,9 @@ class IoC {
         this._container
             .bind<IBackgroundTask>(Identifier.SUBSCRIBE_EVENT_BUS_TASK)
             .to(SubscribeEventBusTask).inRequestScope()
+        this._container
+            .bind<IBackgroundTask>(Identifier.RPC_SERVER_EVENT_BUS_TASK)
+            .to(RpcServerEventBusTask).inRequestScope()
         this._container
             .bind<IBackgroundTask>(Identifier.SYNC_FITBIT_DATA_TASK)
             .to(SyncFitbitDataTask).inSingletonScope()

@@ -26,6 +26,7 @@ export class BackgroundService {
         @inject(Identifier.RABBITMQ_EVENT_BUS) private readonly _eventBus: IEventBus,
         @inject(Identifier.MONGODB_CONNECTION) private readonly _mongodb: IConnectionDB,
         @inject(Identifier.SUBSCRIBE_EVENT_BUS_TASK) private readonly _subscribeTask: IBackgroundTask,
+        @inject(Identifier.RPC_SERVER_EVENT_BUS_TASK) private readonly _rpcServerTask: IBackgroundTask,
         @inject(Identifier.SYNC_FITBIT_DATA_TASK) private readonly _syncFitbitDataTask: IBackgroundTask,
         @inject(Identifier.LOGGER) private readonly _logger: ILogger
     ) {
@@ -92,6 +93,21 @@ export class BackgroundService {
             })
             .catch(err => {
                 this._logger.error(`Error trying to get connection to Event Bus for event publishing. ${err.message}`)
+            })
+
+        this._eventBus
+            .connectionRpcServer
+            .open(rabbitConfigs.uri, rabbitConfigs.options)
+            .then((conn) => {
+                this._logger.info('RPC Server connection established!')
+
+                conn.on('disconnected', () => this._logger.warn('RPC Server connection has been lost...'))
+                conn.on('reestablished', () => this._logger.info('RPC Server connection re-established!'))
+
+                this._rpcServerTask.run()
+            })
+            .catch(err => {
+                this._logger.error(`Error trying to get connection to Event Bus for RPC Server. ${err.message}`)
             })
 
         this._syncFitbitDataTask.run()
