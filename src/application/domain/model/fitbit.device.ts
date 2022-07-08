@@ -7,7 +7,7 @@ import { ManufacturerType } from '../utils/manufacturer.type'
  * Implementation of the FitbitDevice entity.
  *
  * @extends {Entity}
- * @implements { IJSONSerializable, IJSONDeserializable<FitbitDevice>
+ * @implements { IJSONSerializable, IJSONDeserializable<FitbitDevice> }
  */
 export class FitbitDevice extends Device implements IJSONSerializable, IJSONDeserializable<FitbitDevice> {
     constructor() {
