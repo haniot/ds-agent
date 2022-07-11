@@ -8,6 +8,7 @@ import { IEntityMapper } from '../../../src/infrastructure/port/entity.mapper.in
 import { ILogger } from '../../../src/utils/custom.logger'
 import { Entity } from '../../../src/application/domain/model/entity'
 import { Query } from '../../../src/infrastructure/repository/query/query'
+import { Strings } from '../../../src/utils/strings'
 
 require('../../utils/sinon-mongoose')
 
@@ -207,12 +208,12 @@ describe('Repositories: BaseRepository', () => {
                     .expects('findOneAndDelete')
                     .withArgs({ _id: object.id })
                     .chain('exec')
-                    .rejects({ name: 'CastError', message: 'A validation error occurs!' })
+                    .rejects({ name: 'CastError', kind: 'ObjectId' })
 
                 return repo.delete(object.id)
                     .catch(err => {
-                        assert.propertyVal(err, 'message', 'The given ID is in invalid format.')
-                        assert.propertyVal(err, 'description', 'A 12 bytes hexadecimal ID similar to this')
+                        assert.propertyVal(err, 'message', Strings.ERROR_MESSAGE.UUID_NOT_VALID_FORMAT)
+                        assert.propertyVal(err, 'description', Strings.ERROR_MESSAGE.UUID_NOT_VALID_FORMAT_DESC)
                     })
             })
         })
@@ -243,12 +244,12 @@ describe('Repositories: BaseRepository', () => {
                     .expects('countDocuments')
                     .withArgs({})
                     .chain('exec')
-                    .rejects({ name: 'CastError', message: 'A validation error occurs!' })
+                    .rejects({ name: 'CastError', kind: 'ObjectId' })
 
                 return repo.count(new Query())
                     .catch(err => {
-                        assert.propertyVal(err, 'message', 'The given ID is in invalid format.')
-                        assert.propertyVal(err, 'description', 'A 12 bytes hexadecimal ID similar to this')
+                        assert.propertyVal(err, 'message', Strings.ERROR_MESSAGE.UUID_NOT_VALID_FORMAT)
+                        assert.propertyVal(err, 'description', Strings.ERROR_MESSAGE.UUID_NOT_VALID_FORMAT_DESC)
                     })
             })
         })

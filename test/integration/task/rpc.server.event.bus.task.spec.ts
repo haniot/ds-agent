@@ -11,6 +11,7 @@ import { EventBusRabbitMQ } from '../../../src/infrastructure/eventbus/rabbitmq/
 import { IConnectionDB } from '../../../src/infrastructure/port/connection.db.interface'
 import { Config } from '../../../src/utils/config'
 import { ILogger } from '../../../src/utils/custom.logger'
+import { Strings } from '../../../src/utils/strings'
 import { FitbitDeviceMock } from '../../mocks/models/fitbit.device.mock'
 import { DefaultFunctions } from '../../mocks/utils/default.functions'
 import { repoUtils } from '../utils/repository.utils'
@@ -40,10 +41,12 @@ describe('RPC SERVER EVENT BUS TASK', () => {
     // Fitbit Device
     const userId = DefaultFunctions.generateObjectId()
     const fitbitDevice: FitbitDevice = new FitbitDeviceMock().generate()
+    fitbitDevice.last_sync = new Date('2022-07-01').toISOString()
     fitbitDevice.user_id = userId
     const otherFitbitDevice: FitbitDevice = new FitbitDeviceMock().generate()
     otherFitbitDevice.name = 'Other Fitbit Device'
     otherFitbitDevice.type = 'SCALE'
+    otherFitbitDevice.last_sync = new Date('2022-07-10').toISOString()
     otherFitbitDevice.user_id = userId
     const otherFitbitDevice2: FitbitDevice = new FitbitDeviceMock().generate()
     otherFitbitDevice2.name = 'Other Fitbit Device 2'
@@ -142,12 +145,25 @@ describe('RPC SERVER EVENT BUS TASK', () => {
                     .catch(done)
             })
 
+            it('should return fitbit devices that have the last_sync between a time interval (array with two fitbitDevice)',
+                (done) => {
+                    eventBus.executeResource('ds.app.rpc', 'fitbitdevices.find', '?last_sync=gte:2022-07-01T00:00:00.000Z&' +
+                        'last_sync=lte:2022-07-10T23:59:59.999Z')
+                        .then(result => {
+                            expect(result.length).to.eql(2)
+                            expect(result[0].name).to.eql('Other Fitbit Device')
+                            expect(result[1].name).to.eql('Default Fitbit Device')
+                            done()
+                        })
+                        .catch(done)
+                })
+
             it('should return fitbit devices associated with a user_id (array with two fitbitDevice)', (done) => {
-                eventBus.executeResource('ds.app.rpc', 'fitbitdevices.find', '?type=SCALE')
+                eventBus.executeResource('ds.app.rpc', 'fitbitdevices.find', `?user_id=${userId}`)
                     .then(result => {
                         expect(result.length).to.eql(2)
-                        expect(result[0].type).to.eql('SCALE')
-                        expect(result[1].type).to.eql('SCALE')
+                        expect(result[0].user_id).to.eql(userId)
+                        expect(result[1].user_id).to.eql(userId)
                         done()
                     })
                     .catch(done)
@@ -212,99 +228,99 @@ describe('RPC SERVER EVENT BUS TASK', () => {
             })
         })
 
-        // context('when trying to retrieve fitbit devices through invalid query', () => {
-        //     before(async () => {
-        //         try {
-        //             await repoUtils.deleteAllDevices()
+        context('when trying to retrieve fitbit devices through invalid query', () => {
+            before(async () => {
+                try {
+                    await repoUtils.deleteAllDevices()
 
-        //             // Creates FitbitDevice.
-        //             const fitbitDeviceCreated = await repoUtils.createFitbitDevice(fitbitDevice)
-        //             fitbitDevice.id = fitbitDeviceCreated?.id
-        //         } catch (err: any) {
-        //             throw new Error('Failure on Provider fitbitdevices.find test: ' + err.message)
-        //         }
-        //     })
+                    // Creates FitbitDevice.
+                    const fitbitDeviceCreated = await repoUtils.createFitbitDevice(fitbitDevice)
+                    fitbitDevice.id = fitbitDeviceCreated?.id
+                } catch (err: any) {
+                    throw new Error('Failure on Provider fitbitdevices.find test: ' + err.message)
+                }
+            })
 
-        //     after(async () => {
-        //         try {
-        //             await repoUtils.deleteAllDevices()
-        //         } catch (err: any) {
-        //             throw new Error('Failure on Provider fitbitdevices.find test: ' + err.message)
-        //         }
-        //     })
+            after(async () => {
+                try {
+                    await repoUtils.deleteAllDevices()
+                } catch (err: any) {
+                    throw new Error('Failure on Provider fitbitdevices.find test: ' + err.message)
+                }
+            })
 
-        //     it('should return a ValidationException (query with an invalid ObjectID (user_id))', (done) => {
-        //         eventBus.executeResource('ds.app.rpc', 'fitbitdevices.find', '?user_id=123')
-        //             .then(() => {
-        //                 done(new Error('The find method of the repository should not function normally'))
-        //             })
-        //             .catch((err) => {
-        //                 try {
-        //                     expect(err.message).to.eql('Error: '.concat(Strings.ERROR_MESSAGE.VALIDATE.UUID_NOT_VALID_FORMAT))
-        //                     done()
-        //                 } catch (err) {
-        //                     done(err)
-        //                 }
-        //             })
-        //     })
+            it('should return a ValidationException (query with an invalid ObjectID (_id))', (done) => {
+                eventBus.executeResource('ds.app.rpc', 'fitbitdevices.find', '?_id=123')
+                    .then(() => {
+                        done(new Error('The find method of the repository should not function normally'))
+                    })
+                    .catch((err) => {
+                        try {
+                            expect(err.message).to.eql('Error: '.concat(Strings.ERROR_MESSAGE.UUID_NOT_VALID_FORMAT))
+                            done()
+                        } catch (err) {
+                            done(err)
+                        }
+                    })
+            })
 
-        //     it('should return a ValidationException (query with an invalid date (created_at))', (done) => {
-        //         eventBus.executeResource('ds.app.rpc', 'fitbitdevices.find', '?created_at=invalidCreatedAt')
-        //             .then(() => {
-        //                 done(new Error('The find method of the repository should not function normally'))
-        //             })
-        //             .catch((err) => {
-        //                 try {
-        //                     expect(err.message).to.eql('Error: '.concat(Strings.ERROR_MESSAGE.DATE.INVALID_DATETIME_FORMAT
-        //                         .replace('{0}', 'invalidCreatedAt')))
-        //                     done()
-        //                 } catch (err) {
-        //                     done(err)
-        //                 }
-        //             })
-        //     })
-        // })
+            it('should return a ValidationException (query with an invalid date (created_at))', (done) => {
+                eventBus.executeResource('ds.app.rpc', 'fitbitdevices.find', '?created_at=invalidCreatedAt')
+                    .then(() => {
+                        done(new Error('The find method of the repository should not function normally'))
+                    })
+                    .catch((err) => {
+                        try {
+                            expect(err.message).to.eql('Error: '.concat(Strings.ERROR_MESSAGE.DATE.INVALID_DATETIME_FORMAT
+                                .replace('{0}', 'invalidCreatedAt')))
+                            done()
+                        } catch (err) {
+                            done(err)
+                        }
+                    })
+            })
+        })
 
-        // context('when trying to retrieve fitbit devices through a query unsuccessful (without MongoDB connection)', () => {
-        //     before(async () => {
-        //         try {
-        //             await repoUtils.deleteAllDevices()
+        context('when trying to retrieve fitbit devices through a query unsuccessful (without MongoDB connection)', () => {
+            before(async () => {
+                try {
+                    await repoUtils.deleteAllDevices()
 
-        //             // Creates FitbitDevice.
-        //             const fitbitDeviceCreated = await repoUtils.createFitbitDevice(fitbitDevice)
-        //             fitbitDevice.id = fitbitDeviceCreated?.id
+                    // Creates FitbitDevice.
+                    const fitbitDeviceCreated = await repoUtils.createFitbitDevice(fitbitDevice)
+                    fitbitDevice.id = fitbitDeviceCreated?.id
 
-        //             await dbConnection.dispose()
-        //         } catch (err: any) {
-        //             throw new Error('Failure on Provider fitbitdevices.find test: ' + err.message)
-        //         }
-        //     })
+                    await dbConnection.dispose()
+                } catch (err: any) {
+                    throw new Error('Failure on Provider fitbitdevices.find test: ' + err.message)
+                }
+            })
 
-        //     after(async () => {
-        //         try {
-        //             await dbConnection.tryConnect(mongoConfigs.uri, mongoConfigs.options)
+            after(async () => {
+                try {
+                    await dbConnection.tryConnect(mongoConfigs.uri, mongoConfigs.options)
 
-        //             await repoUtils.deleteAllDevices()
-        //         } catch (err: any) {
-        //             throw new Error('Failure on Provider fitbitdevices.find test: ' + err.message)
-        //         }
-        //     })
+                    await repoUtils.deleteAllDevices()
+                } catch (err: any) {
+                    throw new Error('Failure on Provider fitbitdevices.find test: ' + err.message)
+                }
+            })
 
-        //     it('should return a MongoClient connection error', (done) => {
-        //         eventBus.executeResource('ds.app.rpc', 'fitbitdevices.find', '')
-        //             .then(() => {
-        //                 done(new Error('The find method of the repository should not function normally'))
-        //             })
-        //             .catch((err) => {
-        //                 try {
-        //                     expect(err.message).to.eql('Error: Client must be connected before running operations')
-        //                     done()
-        //                 } catch (err) {
-        //                     done(err)
-        //                 }
-        //             })
-        //     })
-        // })
+            it('should return a MongoClient connection error', (done) => {
+                eventBus.executeResource('ds.app.rpc', 'fitbitdevices.find', '')
+                    .then(() => {
+                        done(new Error('The find method of the repository should not function normally'))
+                    })
+                    .catch((err) => {
+                        try {
+                            expect(err.message).to.eql('Error: Client must be connected before running operations')
+                            done()
+                        } catch (err) {
+                            done(err)
+                        }
+                    })
+            })
+        })
 
         context('when trying to retrieve fitbit devices without a connection from the RPC Server', () => {
             before(async () => {
@@ -336,7 +352,6 @@ describe('RPC SERVER EVENT BUS TASK', () => {
                     await eventBus.connectionRpcClient.open(rabbitConfigs.uri, rabbitConfigs.options)
 
                     rpcServerEventBusTask = new RpcServerEventBusTask(eventBus, fitbitDeviceRepository, logger)
-
                     rpcServerEventBusTask.run()
 
                     await timeout(2000)
