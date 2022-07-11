@@ -11,6 +11,8 @@ import { GenericUserEventHandlerMock } from '../../mocks/generic.user.event.hand
 
 const eventBus: EventBusRabbitMQ = new EventBusRabbitMQ(
     new ConnectionRabbitMQ(new ConnectionFactoryRabbitMQ()),
+    new ConnectionRabbitMQ(new ConnectionFactoryRabbitMQ()),
+    new ConnectionRabbitMQ(new ConnectionFactoryRabbitMQ()),
     new ConnectionRabbitMQ(new ConnectionFactoryRabbitMQ())
 )
 

@@ -49,6 +49,7 @@ export abstract class Identifier {
 
     // Tasks
     public static readonly SUBSCRIBE_EVENT_BUS_TASK: any = Symbol.for('SubscribeEventBusTask')
+    public static readonly RPC_SERVER_EVENT_BUS_TASK: any = Symbol.for('RpcServerEventBusTask')
     public static readonly SYNC_FITBIT_DATA_TASK: any = Symbol.for('SyncFitbitDataTask')
     public static readonly INACTIVE_USERS_TASK: any = Symbol.for('InactiveUsersTask')
 

@@ -30,12 +30,18 @@ export abstract class Strings {
         REQUEST_BODY_INVALID: 'Unable to process request body!',
         REQUEST_BODY_INVALID_DESC: 'Please verify that the JSON provided in the request body has a valid format and try again.',
         ENDPOINT_NOT_FOUND: 'Endpoint {0} does not found!',
+        INTERNAL_SERVER_ERROR: 'An internal server error has occurred.',
+        INTERNAL_SERVER_ERROR_DESC: 'Check all parameters of the operation being requested.',
         UNEXPECTED: 'An unexpected error has occurred. Please try again later...',
         UUID_NOT_VALID_FORMAT: 'Some ID provided does not have a valid format!',
         UUID_NOT_VALID_FORMAT_DESC: 'A 24-byte hex ID similar to this: 507f191e810c19729de860ea is expected.',
         PARAMETER_COULD_NOT_BE_UPDATED: 'This parameter could not be updated.',
         OPERATION_CANT_BE_COMPLETED: 'The operation could not be performed successfully.',
-        OPERATION_CANT_BE_COMPLETED_DESC: 'Probably one or more of the request parameters are incorrect.'
+        OPERATION_CANT_BE_COMPLETED_DESC: 'Probably one or more of the request parameters are incorrect.',
+        DATE: {
+            INVALID_DATETIME_FORMAT: 'Datetime: {0}, is not in valid ISO 8601 format.',
+            INVALID_DATETIME_FORMAT_DESC: 'Datetime must be in the format: yyyy-MM-ddTHH:mm:ssZ'
+        },
     }
 
     public static readonly FITBIT_ERROR: any = {

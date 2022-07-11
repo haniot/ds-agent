@@ -6,7 +6,7 @@ export class FitbitDeviceMock {
     public generate(): FitbitDevice {
         const fitbitDevice: FitbitDevice = new FitbitDevice()
         fitbitDevice.id = DefaultFunctions.generateObjectId()
-        fitbitDevice.name = 'Default FitbitDevice'
+        fitbitDevice.name = 'Default Fitbit Device'
         fitbitDevice.address = '50CE1D793EC5'
         fitbitDevice.type = 'TRACKER'
         fitbitDevice.last_sync = DefaultFunctions.generateDate()
