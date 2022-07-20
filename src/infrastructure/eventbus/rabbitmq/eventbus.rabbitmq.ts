@@ -10,15 +10,22 @@ import { EventBusException } from '../../../application/domain/exception/eventbu
 @injectable()
 export class EventBusRabbitMQ implements IEventBus {
     private readonly RABBITMQ_QUEUE_NAME: string = 'ds.app'
+    private readonly RABBITMQ_RPC_QUEUE_NAME: string = 'ds.app.rpc'
+    private readonly RABBITMQ_RPC_EXCHANGE_NAME: string = 'ds.app.rpc'
     private _receiveFromYourself: boolean
     private _event_handlers: Map<string, IIntegrationEventHandler<IntegrationEvent<any>>>
+    private _rpcServer!: any
+    private _rpcServerInitialized: boolean
 
     constructor(
         @inject(Identifier.RABBITMQ_CONNECTION) public connectionPub: IConnectionEventBus,
-        @inject(Identifier.RABBITMQ_CONNECTION) public connectionSub: IConnectionEventBus
+        @inject(Identifier.RABBITMQ_CONNECTION) public connectionSub: IConnectionEventBus,
+        @inject(Identifier.RABBITMQ_CONNECTION) public connectionRpcServer: IConnectionEventBus,
+        @inject(Identifier.RABBITMQ_CONNECTION) public connectionRpcClient: IConnectionEventBus
     ) {
         this._event_handlers = new Map()
         this._receiveFromYourself = false
+        this._rpcServerInitialized = false
     }
 
     set receiveFromYourself(value: boolean) {
@@ -60,7 +67,7 @@ export class EventBusRabbitMQ implements IEventBus {
      * @return {Promise<boolean>}
      */
     public async subscribe(event: IntegrationEvent<any>, handler: IIntegrationEventHandler<IntegrationEvent<any>>,
-                           routingKey: string): Promise<any> {
+        routingKey: string): Promise<any> {
         return new Promise<boolean>(async (resolve, reject) => {
             if (!this.connectionSub.isOpen) {
                 return reject(new EventBusException('No connection open!'))
@@ -96,6 +103,59 @@ export class EventBusRabbitMQ implements IEventBus {
         })
     }
 
+    public provideResource(name: string, resource: (...any) => any): Promise<boolean> {
+        return new Promise<boolean>(async (resolve, reject) => {
+            if (!this.connectionRpcServer.isOpen) {
+                return reject(new EventBusException('No connection open!'))
+            }
+
+            this.initializeRPCServer()
+            this._rpcServer.addResource(name, resource)
+
+            this._rpcServer
+                .start()
+                .then(() => resolve(true))
+                .catch(reject)
+        })
+    }
+
+    public executeResource(serviceName: string, resourceName: string, ...params: any[]): Promise<any> {
+        if (!this.connectionRpcClient.isOpen)
+            return Promise.reject(new EventBusException('No connection open!'))
+
+        return this.connectionRpcClient
+            .rpcClient(
+                serviceName,
+                resourceName,
+                params,
+                {
+                    exchange: {
+                        type: 'direct',
+                        durable: true
+                    },
+                    rpcTimeout: 5000
+                })
+    }
+
+    private initializeRPCServer(): void {
+        if (!this._rpcServerInitialized) {
+            this._rpcServerInitialized = true
+            this._rpcServer = this.connectionRpcServer
+                .createRpcServer(
+                    this.RABBITMQ_RPC_QUEUE_NAME,
+                    this.RABBITMQ_RPC_EXCHANGE_NAME,
+                    [],
+                    {
+                        exchange: {
+                            type: 'direct',
+                            durable: true
+                        }, queue: {
+                            expires: 5000
+                        }
+                    })
+        }
+    }
+
     /**
      * Releases the resources.
      *
@@ -104,6 +164,8 @@ export class EventBusRabbitMQ implements IEventBus {
     public async dispose(): Promise<void> {
         if (this.connectionPub) await this.connectionPub.close()
         if (this.connectionSub) await this.connectionSub.close()
+        if (this.connectionRpcServer) await this.connectionRpcServer.close()
+        if (this.connectionRpcClient) await this.connectionRpcClient.close()
         this._event_handlers.clear()
         return Promise.resolve()
     }

@@ -7,6 +7,7 @@ import { ConflictException } from '../../../application/domain/exception/conflic
 import { IEntityMapper } from '../../port/entity.mapper.interface'
 import { IQuery } from '../../../application/port/query.interface'
 import { ILogger } from '../../../utils/custom.logger'
+import { Strings } from '../../../utils/strings'
 
 /**
  * Base implementation of the repository.
@@ -98,15 +99,24 @@ export abstract class BaseRepository<T extends Entity, TModel> implements IRepos
             if (err.name === 'ValidationError') {
                 return new ValidationException('Required fields were not provided!', err.message)
             } else if (err.name === 'CastError' || new RegExp(/(invalid format)/i).test(err)) {
-                return new ValidationException('The given ID is in invalid format.',
-                    'A 12 bytes hexadecimal ID similar to this')
+                if (err.name === 'CastError' && err.kind) {
+                    if (err.kind === 'date') {
+                        return new ValidationException(
+                            Strings.ERROR_MESSAGE.DATE.INVALID_DATETIME_FORMAT.replace('{0}', err.value),
+                            Strings.ERROR_MESSAGE.DATE.INVALID_DATETIME_FORMAT_DESC
+                        )
+                    } else if (err.kind === 'ObjectId') {
+                        return new ValidationException(Strings.ERROR_MESSAGE.UUID_NOT_VALID_FORMAT,
+                            Strings.ERROR_MESSAGE.UUID_NOT_VALID_FORMAT_DESC)
+                    }
+                }
             } else if (err.name === 'MongoError' && err.code === 11000) {
                 return new ConflictException('A registration with the same unique data already exists!')
             } else if (err.name === 'ObjectParameterError') {
                 return new ValidationException('Invalid query parameters!')
             }
         }
-        return new RepositoryException('An internal error has occurred in the database!',
-            'Please try again later...')
+        return new RepositoryException(err && err.message ? err.message : Strings.ERROR_MESSAGE.INTERNAL_SERVER_ERROR,
+            err && err.description ? err.description : undefined)
     }
 }

@@ -7,7 +7,7 @@ import { JsonUtils } from '../utils/json.utils'
  * Implementation of the device entity.
  *
  * @extends {Entity}
- * @implements { IJSONSerializable, IJSONDeserializable<Device>
+ * @implements { IJSONSerializable, IJSONDeserializable<Device> }
  */
 export class Device extends Entity implements IJSONSerializable, IJSONDeserializable<Device> {
     private _name?: string // Device name identification field, according to factory default.
