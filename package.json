@@ -63,7 +63,7 @@
     "inversify-express-utils": "^6.4.3",
     "jsonwebtoken": "^8.5.1",
     "moment": "^2.29.4",
-    "mongoose": "^6.4.5",
+    "mongoose": "^6.4.6",
     "morgan": "^1.10.0",
     "node-cron": "^3.0.1",
     "query-strings-parser": "^2.1.12-lts",
