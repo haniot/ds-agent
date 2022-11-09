@@ -91,7 +91,7 @@ export class FitbitDataRepository implements IFitbitDataRepository {
     }
 
     public refreshToken(userId: string, accessToken: string,
-                        refreshToken: string, expiresIn?: number): Promise<FitbitAuthData | undefined> {
+        refreshToken: string, expiresIn?: number): Promise<FitbitAuthData | undefined> {
         return new Promise<FitbitAuthData | undefined>(async (resolve, reject) => {
             this._fitbitClientRepo.refreshToken(accessToken, refreshToken, expiresIn)
                 .then(async tokenData => {
@@ -100,8 +100,8 @@ export class FitbitDataRepository implements IFitbitDataRepository {
                     const newTokenData: UserAuthData | undefined = await this.updateRefreshToken(userId, authData)
                     return resolve(newTokenData?.fitbit)
                 }).catch(err => {
-                return reject(err)
-            })
+                    return reject(err)
+                })
         })
     }
 
@@ -143,7 +143,9 @@ export class FitbitDataRepository implements IFitbitDataRepository {
                 this.syncAndParseMinutesActiveIntradayTimeSeries(scopes, data.access_token!, userId),
                 this.syncAndParseHeartRateIntradayTimeSeries(scopes, data.access_token!, userId)
             ]
+            this._logger.debug('1 - Arrived before the resolution of the Promises.')
             const results: Array<any> = await Promise.allSettled(promises)
+            this._logger.debug('2 - Arrived after the resolution of the Promises.')
 
             // Verify if someone has a sync error
             const errorResults: Array<any> = results.filter(item => item.status === 'rejected')
@@ -155,9 +157,12 @@ export class FitbitDataRepository implements IFitbitDataRepository {
 
             // Finally, the last sync variable from user needs to be updated
             const lastSync = moment.utc().format()
+            this._logger.debug('3 - Arrived before LastSync update.')
             this.updateLastSync(userId, lastSync)
                 .then(res => {
+                    this._logger.debug('4 - Arrived before LastSync was sent to RabbitMQ.')
                     if (res) this.publishLastSync(userId, lastSync)
+                    this._logger.debug('5 - Arrived after sending LastSync to RabbitMQ.')
                 })
                 .catch(err => this._logger.info(`Error at update the last sync: ${err.message}`))
 
@@ -441,7 +446,7 @@ export class FitbitDataRepository implements IFitbitDataRepository {
         try {
             const resources: Array<any> = []
             if (!data || !data.length) return Promise.resolve(resources)
-            for await(const item of data) {
+            for await (const item of data) {
                 const query: Query = new Query().fromJSON({
                     filters: {
                         'resource.logId': item.logId,
@@ -531,7 +536,7 @@ export class FitbitDataRepository implements IFitbitDataRepository {
     }
 
     private async getMultipleIntradayTimeSeries
-    (token: string, resource: string, baseDate: string, days: number, userId: string): Promise<Array<any>> {
+        (token: string, resource: string, baseDate: string, days: number, userId: string): Promise<Array<any>> {
         try {
             const promises: Array<any> = []
             for (let i = 0; i <= days; i++) {
