@@ -131,6 +131,7 @@ export class SyncFitbitDataTask implements IBackgroundTask {
     private fitbitDataSync(): void {
         const query = new Query()
         query.filters = { 'fitbit.status': 'valid_token' }
+        query.pagination.limit = Number.MAX_SAFE_INTEGER
 
         this._userAuthDataService
             .getAll(query)
