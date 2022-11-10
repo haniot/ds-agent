@@ -315,7 +315,7 @@ export class FitbitDataRepository implements IFitbitDataRepository {
             if (!(scopes.includes('ract'))) return Promise.resolve([])
             const date: string = moment().format('YYYY-MM-DD')
             // Synchronize intraday resource data from the current moment up to six days ago
-            const sync_intraday: any = await this.getMultipleIntradayTimeSeries(token, resource, date, 6, userId)
+            const sync_intraday: any = await this.getMultipleIntradayTimeSeries(token, resource, date, 20, userId)
             // Parse intraday resource data
             const parse_intraday: Array<UserIntradayTimeSeries> =
                 sync_intraday.map(item => this.parseIntradayTimeSeriesResources(userId, resource, item))
@@ -352,7 +352,7 @@ export class FitbitDataRepository implements IFitbitDataRepository {
             if (!(scopes.includes('ract'))) return Promise.resolve([])
             const date: string = moment().format('YYYY-MM-DD')
             // Synchronize intraday resource data from the current moment up to six days ago
-            const sync_intraday: any = await this.getMultipleActiveMinIntradayTimeSeries(token, date, 6, userId)
+            const sync_intraday: any = await this.getMultipleActiveMinIntradayTimeSeries(token, date, 20, userId)
             // Parse intraday resource data
             const parse_intraday: Array<UserIntradayTimeSeries> =
                 sync_intraday.map(item => this.parseIntradayTimeSeriesResources(userId, 'active_minutes', item))
@@ -389,7 +389,7 @@ export class FitbitDataRepository implements IFitbitDataRepository {
             if (!(scopes.includes('ract'))) return Promise.resolve([])
             const date: string = moment().format('YYYY-MM-DD')
             // Synchronize intraday resource data from the current moment up to six days ago
-            const sync_intraday: any = await this.getMultipleHeartRateIntradayTimeSeries(token, date, 6, userId)
+            const sync_intraday: any = await this.getMultipleHeartRateIntradayTimeSeries(token, date, 20, userId)
             // Parse intraday resource data
             const parse_intraday: Array<UserIntradayTimeSeries> =
                 sync_intraday.map(item => this.parseIntradayTimeSeriesHeartRate(userId, item))
@@ -501,11 +501,15 @@ export class FitbitDataRepository implements IFitbitDataRepository {
     }
 
     private async syncWeightData(token: string): Promise<any> {
-        const now: string = moment().add(1, 'day').format('YYYY-MM-DD')
-        const path: string = `/body/log/weight/date/${now}/1m.json`
+        const path: string = `/body/log/weight/date/2022-11-10/1m.json`
         return new Promise<any>((resolve, reject) => {
             this._fitbitClientRepo.getDataFromPath(path, token)
-                .then(result => resolve(result.weight))
+                .then(result => {return result.weight})
+                .then((firstWeight) => {
+                  this._fitbitClientRepo.getDataFromPath(`/body/log/weight/date/2022-10-10/1m.json`, token)
+                  .then(lastMonthResult => {return resolve(lastMonthResult.weight.concat(firstWeight) )})
+                  .catch(err => reject(err))
+                })
                 .catch(err => reject(err))
         })
     }
